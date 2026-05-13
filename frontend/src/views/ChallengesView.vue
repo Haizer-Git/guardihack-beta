@@ -72,7 +72,11 @@ const getProgress = (challenges) => {
 }
 
 const goToChallenge = (id) => {
-  router.push(`/challenges/${id}`)
+  router.push(`/challenge-detail/${id}`)
+}
+
+const goBackToTracks = () => {
+  router.push({ name: 'tracks' })
 }
 </script>
 
@@ -83,6 +87,17 @@ const goToChallenge = (id) => {
       <h1 class="block w-full text-center text-3xl font-cyber font-bold bg-primary text-base-100 py-3 uppercase tracking-widest shadow-sm">
         Challenges
       </h1>
+      <div class="flex justify-center mt-4">
+        <button 
+          @click="goBackToTracks"
+          class="btn btn-sm btn-ghost font-mono gap-2 hover:btn-outline"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour aux Tracks
+        </button>
+      </div>
     </div>
 
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-base-200/50 backdrop-blur-md p-4 rounded-xl border border-base-300 mb-10">

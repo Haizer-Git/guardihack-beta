@@ -43,20 +43,20 @@ onMounted(() => {
           <div class="flex items-center gap-8">
             <div class="flex-shrink-0 flex items-center gap-2">
               <router-link to="/">
-                <img src="/ghp-flag.png" alt="GuardiHack Logo" class="h-20 w-auto object-contain hover:opacity-80 transition-opacity" />
+                <img src="/ghp-flag.png" alt="GuardiHack Logo" class="h-14 w-auto object-contain hover:opacity-80 transition-opacity" />
               </router-link>
             </div>
 
             <div class="hidden lg:flex items-center space-x-1">
               <router-link to="/rules" class="nav-link">Rules</router-link>
-              <router-link to="/users" class="nav-link">Utilisateurs</router-link>
+              <router-link to="/groups" class="nav-link">Groupes</router-link>
               <router-link to="/scoreboard" class="nav-link">Scoreboard</router-link>
-              <router-link to="/challenges" class="nav-link">Challenges</router-link>
+              <router-link to="/tracks" class="nav-link">Tracks</router-link>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <a v-if="isAdmin" href="#" class="nav-link text-secondary hover:text-secondary-focus hidden md:flex items-center gap-1">
+            <a v-if="isAdmin" :href="'/admin'" class="nav-link text-secondary hover:text-secondary-focus hidden md:flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -75,22 +75,50 @@ onMounted(() => {
                 </div>
               </label>
               <ul tabindex="0" class="mt-3 z-[1] p-2 shadow-2xl menu menu-sm dropdown-content bg-base-200 w-52 border border-base-300 rounded-box">
-                <li><a class="py-3">Mon profil</a></li>
-                <li><a class="py-3">Paramètres</a></li>
-                <li><a class="py-3 text-error font-bold">Déconnexion</a></li>
+                <li><router-link to="/profile" class="py-3">👤 Mon profil</router-link></li>
+                <li><router-link to="/profile/settings" class="py-3">⚙️ Paramètres</router-link></li>
+                <li><a class="py-3 text-error font-bold">🚪 Déconnexion</a></li>
               </ul>
             </div>
 
             <div class="w-[1px] h-6 bg-base-content/20 mx-2"></div>
 
-            <button class="btn btn-ghost btn-circle btn-sm">
-              <div class="indicator">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-                <span class="badge badge-xs badge-primary indicator-item"></span>
-              </div>
-            </button>
+            <div class="dropdown dropdown-end">
+              <button class="btn btn-ghost btn-circle btn-sm">
+                <div class="indicator">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  <span class="badge badge-xs badge-primary indicator-item">3</span>
+                </div>
+              </button>
+              <ul class="dropdown-content menu p-2 shadow-2xl bg-base-200 border border-base-300 rounded-box w-64 z-[1]">
+                <li class="menu-title">
+                  <span class="font-cyber font-bold text-primary">Notifications (3)</span>
+                </li>
+                <li><a class="py-3 border-b border-base-300">
+                  <span class="badge badge-success badge-sm">✓</span>
+                  <div class="flex flex-col gap-1 flex-1">
+                    <span class="font-bold text-sm">Challenge résolu!</span>
+                    <span class="text-xs opacity-60">Vous avez résolu 'SQLi Bypasser'</span>
+                  </div>
+                </a></li>
+                <li><a class="py-3 border-b border-base-300">
+                  <span class="badge badge-info badge-sm">!</span>
+                  <div class="flex flex-col gap-1 flex-1">
+                    <span class="font-bold text-sm">Nouvelle machine</span>
+                    <span class="text-xs opacity-60">T02 déverrouillé: Fondamentaux Système</span>
+                  </div>
+                </a></li>
+                <li><a class="py-3">
+                  <span class="badge badge-warning badge-sm">⚠</span>
+                  <div class="flex flex-col gap-1 flex-1">
+                    <span class="font-bold text-sm">Classement mis à jour</span>
+                    <span class="text-xs opacity-60">Vous êtes passé 1er avec 2500 pts</span>
+                  </div>
+                </a></li>
+              </ul>
+            </div>
 
             <label class="btn btn-ghost btn-circle btn-sm swap swap-rotate">
               <input type="checkbox" v-model="isDark" />
