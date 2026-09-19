@@ -11,61 +11,30 @@ const props = defineProps({
     default: 'icon_list',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS
-// ════════════════════════════════════════════════════════
 const icons          = ref([])
 const loadingIcons   = ref(false)
-
-// Filtres et Tri
 const search         = ref('')
 const sortKey        = ref('filename')
 const sortDir        = ref('asc')
-
-// Formulaires / Modale d'upload
 const isModalOpen    = ref(false)
 const uploadType     = ref('BADGE')
 const selectedFiles  = ref([])
 const uploading      = ref(false)
-
-// ════════════════════════════════════════════════════════
-// 2. COMPUTED PROPERTIES
-// ════════════════════════════════════════════════════════
 const tabGroup = computed(() => TAB_GROUPS[props.initialTab] ?? TAB_GROUPS.icon)
 const activeTab = ref('icon_list')
-
 const filteredIconsTable = computed(() => {
   if (!search.value.trim()) return icons.value
   const term = search.value.trim().toLowerCase()
   return icons.value.filter(ic => ic.filename.toLowerCase().includes(term) || ic.filetype.toLowerCase().includes(term))
 })
-
-// ════════════════════════════════════════════════════════
-// 3. CONFIGURATION DES ONGLETS & HELPERS UI
-// ════════════════════════════════════════════════════════
 const TAB_GROUPS = {
   icon: [
     { id: 'icon_list', label: 'Liste' },
   ]
 }
-
-function defaultTabForGroup(groupKey) {
-  return 'icon_list'
-}
-
-function onTabChange(tab) {
-  activeTab.value = tab
-  if (tab === 'icon_list') fetchIcons()
-}
-
 const breadcrumbSubCategory = computed(() => {
   return 'Photothèque'
 })
-
-// ════════════════════════════════════════════════════════
-// 4. GESTION DES POPUPS DE CONFIRMATION
-// ════════════════════════════════════════════════════════
 const confirmModal = reactive({
   isOpen: false,
   title: '',
@@ -74,6 +43,13 @@ const confirmModal = reactive({
   onConfirm: null
 })
 
+function defaultTabForGroup(groupKey) {
+  return 'icon_list'
+}
+function onTabChange(tab) {
+  activeTab.value = tab
+  if (tab === 'icon_list') fetchIcons()
+}
 function triggerConfirm(title, message, callback) {
   confirmModal.title = title
   confirmModal.message = message
@@ -81,7 +57,6 @@ function triggerConfirm(title, message, callback) {
   confirmModal.onConfirm = callback
   confirmModal.isOpen = true
 }
-
 async function handleConfirmDialog() {
   if (confirmModal.onConfirm) {
     confirmModal.loading = true
@@ -97,16 +72,11 @@ async function handleConfirmDialog() {
     closeConfirmDialog()
   }
 }
-
 function closeConfirmDialog() {
   confirmModal.isOpen = false
   confirmModal.loading = false
   confirmModal.onConfirm = null
 }
-
-// ════════════════════════════════════════════════════════
-// 5. FONCTIONS API (Icônes)
-// ════════════════════════════════════════════════════════
 async function fetchIcons() {
   loadingIcons.value = true
   try {
@@ -119,7 +89,6 @@ async function fetchIcons() {
     loadingIcons.value = false
   }
 }
-
 function deleteIcon(id, filename) {
   triggerConfirm(
     'Supprimer l\'icône',
@@ -136,19 +105,15 @@ function deleteIcon(id, filename) {
     }
   )
 }
-
 function handleFileSelection(e) {
   selectedFiles.value = Array.from(e.target.files)
 }
-
 async function handleUpload() {
   if (selectedFiles.value.length === 0) return
-
   const formData = new FormData()
   selectedFiles.value.forEach(file => {
     formData.append('files', file)
   })
-
   uploading.value = true
   try {
     const res = await axios.post(`/api/admin/icon/upload/${uploadType.value}`, formData, {
@@ -165,7 +130,6 @@ async function handleUpload() {
     uploading.value = false
   }
 }
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -180,7 +144,6 @@ function setSort(key) {
     return 0
   })
 }
-
 function clearFilters() {
   search.value = ''
 }
@@ -201,7 +164,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Titre Principal -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > {{ breadcrumbSubCategory }}</p>
@@ -209,8 +171,6 @@ onMounted(() => {
       </div>
       <span class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ icons.length }} ICÔNE{{ icons.length > 1 ? 'S' : '' }}</span>
     </div>
-
-    <!-- Barre d'onglets -->
     <div class="flex gap-0 border-b border-primary mb-6">
       <button
         v-for="tab in tabGroup"
@@ -227,8 +187,6 @@ onMounted(() => {
         ]"
       >{{ tab.label }}</button>
     </div>
-
-    <!-- ── TAB : LISTE DES ICÔNES ── -->
     <div v-if="activeTab === 'icon_list'" class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <button
@@ -238,8 +196,6 @@ onMounted(() => {
           <span>+ Ajouter de nouvelles icônes</span>
         </button>
       </div>
-
-      <!-- Filtres et recherche -->
       <div class="flex items-center gap-2 flex-wrap mb-2">
         <div class="relative flex-1 min-w-48">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -251,8 +207,6 @@ onMounted(() => {
           />
         </div>
       </div>
-
-      <!-- Tableau -->
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[1fr_2fr_1.5fr_1.5fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Aperçu</div>
@@ -271,7 +225,6 @@ onMounted(() => {
           </button>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingIcons" class="flex justify-center py-16">
             <span class="loading loading-spinner loading-md text-primary"></span>
@@ -284,33 +237,27 @@ onMounted(() => {
               v-for="icon in filteredIconsTable" :key="icon.id"
               class="grid grid-cols-[1fr_2fr_1.5fr_1.5fr_120px] items-center border-b border-base-300/50 hover:bg-base-300/30 transition-colors duration-100"
             >
-              <!-- Aperçu -->
               <div class="px-4 py-2 flex items-center">
                 <div class="w-10 h-10 bg-base-100 border border-base-300 flex items-center justify-center overflow-hidden">
                     <img :src="getAssetUrl(icon.filepath)" :alt="icon.filename" class="w-full h-full object-contain" @error="$event.target.style.display='none'" />
                 </div>
               </div>
-              <!-- Nom du fichier -->
               <div class="px-4 py-3 flex items-center gap-2 min-w-0">
                 <span class="font-code text-[10px] text-base-content/30 shrink-0">#{{ icon.id }}</span>
                 <span class="font-code text-xs text-base-content font-medium truncate" :title="icon.filename">{{ icon.filename }}</span>
               </div>
-              <!-- Type -->
               <div class="px-4 py-3 flex items-center">
                 <span class="font-code text-xs text-secondary bg-secondary/15 px-2 py-0.5 border border-secondary/30 uppercase">{{ icon.filetype }}</span>
               </div>
-              <!-- Date d'ajout -->
               <div class="px-4 py-3 flex items-center">
                 <span class="font-code text-[11px] text-base-content/60">{{ icon.uploaded_at ?? '—' }}</span>
               </div>
-              <!-- Actions -->
               <div class="px-4 py-3 flex items-center justify-end gap-1.5">
                 <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteIcon(icon.id, icon.filename)" title="Supprimer">Supprimer</button>
               </div>
             </div>
           </div>
         </div>
-
         <div class="border-t border-base-300 px-4 py-2 bg-base-200/50 flex items-center justify-between shrink-0">
           <span class="font-code text-[10px] text-base-content/30">{{ filteredIconsTable.length }} / {{ icons.length }} ICÔNE{{ filteredIconsTable.length > 1 ? 'S' : '' }}</span>
           <span
@@ -321,10 +268,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
   </div>
-
-  <!-- MODALE D'UPLOAD MULTIPLE -->
   <dialog :class="['modal', { 'modal-open': isModalOpen }]">
     <div class="modal-box bg-base-100 border border-base-300 rounded-none shadow-2xl p-6 max-w-lg">
       <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
@@ -334,7 +278,6 @@ onMounted(() => {
         </div>
         <button @click="isModalOpen = false" class="btn btn-sm btn-ghost font-code">✕</button>
       </div>
-
       <div class="flex flex-col gap-4 font-text text-xs">
         <div class="flex flex-col gap-1">
           <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type de ressource *</label>
@@ -344,7 +287,6 @@ onMounted(() => {
             <option value="BANNER">Bannière</option>
           </select>
         </div>
-
         <div class="flex flex-col gap-1">
           <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Fichiers (PNG, JPG, SVG...) *</label>
           <input
@@ -356,7 +298,6 @@ onMounted(() => {
           />
         </div>
       </div>
-
       <div class="modal-action mt-6 pt-4 border-t border-base-300 flex justify-end gap-2">
         <button @click="isModalOpen = false" class="btn btn-sm btn-ghost font-code text-xs">Annuler</button>
         <button

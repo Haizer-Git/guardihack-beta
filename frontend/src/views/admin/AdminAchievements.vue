@@ -11,30 +11,21 @@ const props = defineProps({
     default: 'achievement_list',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS (ACHIEVEMENTS)
-// ════════════════════════════════════════════════════════
 const achievements          = ref([])
 const loadingAchievements   = ref(false)
 const selectedAchievement   = ref(null)
-
 const requirementsPanelOpen = ref(false)
 const rewardsPanelOpen      = ref(false)
 const usersPanelOpen        = ref(false)
 const exportingCsv          = ref(false)
-
 const achievementModal      = reactive({ isOpen: false })
-
 const allChallenges         = ref([])
 const allCategories         = ref([])
 const allBadges             = ref([])
 const allCosmetics          = ref('')
-
 const search                = ref('')
 const sortKey               = ref('id')
 const sortDir               = ref('desc')
-
 const requirementTypeLabels = {
   "CHALLENGE_COMPLETION": "Complétion d'un challenge spécifique",
   "CHALLENGE_COMPLETION_COUNT": "Nombre de challenges validés",
@@ -49,46 +40,33 @@ const requirementTypeLabels = {
   "CONNECTION_DATE": "Date de connexion spécifique",
   "CONNECTION_STREAK": "Série de connexions consécutives (Streak)"
 }
-
 const achievementFormDefaults = { name: '', description: '' }
 const achievementForm = reactive({ ...achievementFormDefaults })
 const creatingAchievement = ref(false)
-
 const batchReqTargetId = ref('')
 const requirementRows = ref([
   { type: 'CHALLENGE_COMPLETION', challenge_id: '', category_id: '', count: '', target_date: '', badge_id: '', cosmetic_id: '' }
 ])
 const addingBatchRequirements = ref(false)
-
 const batchRewTargetId = ref('')
 const rewardRows = ref([
   { type: 'BADGE', reward_id: '', value: '' }
 ])
 const addingBatchRewards = ref(false)
-
-// ════════════════════════════════════════════════════════
-// 2. DÉCLARATION DES VARIABLES & ÉTATS (BADGES)
-// ════════════════════════════════════════════════════════
 const badges        = ref([])
 const loadingBadges = ref(false)
 const expandedBadge = ref(null)
-
-// Filtre texte et type pour le tableau des badges
 const badgeSearch     = ref('')
 const badgeFilterType = ref('')
-
 const filteredBadgesTable = computed(() => {
   return badges.value.filter(b => {
     const matchesSearch = !badgeSearch.value.trim() || 
       b.name.toLowerCase().includes(badgeSearch.value.trim().toLowerCase()) || 
       b.description.toLowerCase().includes(badgeSearch.value.trim().toLowerCase())
-    
     const matchesType = !badgeFilterType.value || b.type === badgeFilterType.value
-
     return matchesSearch && matchesType
   })
 })
-
 const TYPE_MAP = {
   CHALLENGE:    'bg-info/15 text-info border border-info/30',
   ACHIEVEMENT:  'bg-primary/15 text-primary border border-primary/30',
@@ -96,23 +74,57 @@ const TYPE_MAP = {
   ADMIN:        'bg-warning/15 text-warning border border-warning/30',
 }
 const typeClass = t => TYPE_MAP[t] ?? 'bg-base-300 text-base-content/60 border border-base-300'
-
 const createDefaults = { type: 'SPECIAL', name: '', description: '', icon_id: null, icon_url: '' }
 const createForm = reactive({ ...createDefaults })
 const creating   = ref(false)
-
 const editTarget = ref(null)
 const editForm   = reactive({ type: '', name: '', description: '', icon_id: null, icon_url: '' })
 const editing    = ref(false)
-
-// Modale d'attribution manuelle pour les badges
 const assignModalOpen = ref(false)
 const targetBadge     = ref(null)
 const assignQuery     = ref('')
 const assignResults   = ref([])
 const assignSearching = ref(false)
 const assigning       = ref(false)
+const explorerOpen     = ref(false)
+const explorerStep     = ref('root')
+const explorerCategory = ref(null)
+const explorerSubtype  = ref(null)
+const explorerIcons    = ref([])
+const loadingIcons     = ref(false)
+const confirmModal = reactive({ isOpen: false, title: '', message: '', loading: false, onConfirm: null })
+const loadingBatchReqs = ref(false)
+const batchSelectedAchievementDetails = ref(null)
+const TAB_GROUPS = {
+  achievement: [
+    { id: 'achievement_list', label: 'Liste' },
+    { id: 'achievement_requirements', label: 'Prérequis' },
+    { id: 'achievement_rewards', label: 'Récompenses' },
+  ],
+  badges: [
+    { id: 'badges_list', label: 'Liste' },
+    { id: 'badges_create', label: 'Créer' },
+    { id: 'badges_edit', label: 'Modifier', locked: () => !editTarget.value },
+  ],
+}
+const tabGroup = computed(() => {
+  if (props.initialTab.startsWith('badges')) return TAB_GROUPS.badges
+  return TAB_GROUPS.achievement
+})
+const activeTab = ref('achievement_list')
+const filteredAchievements = computed(() => {
+  if (!search.value.trim()) return achievements.value
+  const term = search.value.trim().toLowerCase()
+  return achievements.value.filter(a => 
+    a.name.toLowerCase().includes(term) || a.description.toLowerCase().includes(term)
+  )
+})
+const breadcrumbSubCategory = computed(() => {
+  if (activeTab.value.startsWith('badges_')) return 'Succès > Badges'
+  return 'Succès > Succès'
+})
 let assignDebounceTimer = null
+
 
 function openAssignModal(b) {
   targetBadge.value = b
@@ -120,14 +132,12 @@ function openAssignModal(b) {
   assignResults.value = []
   assignModalOpen.value = true
 }
-
 function onAssignQueryInput() {
   clearTimeout(assignDebounceTimer)
   const q = assignQuery.value.trim()
   if (!q) { assignResults.value = []; return }
   assignDebounceTimer = setTimeout(() => searchAssignUsers(q), 250)
 }
-
 async function searchAssignUsers(q) {
   assignSearching.value = true
   try {
@@ -139,7 +149,6 @@ async function searchAssignUsers(q) {
     assignSearching.value = false
   }
 }
-
 async function toggleUserBadge(user, assign) {
   if (!targetBadge.value) return
   assigning.value = true
@@ -156,17 +165,6 @@ async function toggleUserBadge(user, assign) {
     assigning.value = false
   }
 }
-
-// ════════════════════════════════════════════════════════
-// EXPLORATEUR D'ICÔNES POUR LA CRÉATION / MODIFICATION DE BADGES
-// ════════════════════════════════════════════════════════
-const explorerOpen     = ref(false)
-const explorerStep     = ref('root') // 'root' | 'cosmetic_sub' | 'grid'
-const explorerCategory = ref(null)   // 'COSMETIC' | 'BADGE'
-const explorerSubtype  = ref(null)   // 'AVATAR' | 'BANNER' | 'BADGE'
-const explorerIcons    = ref([])
-const loadingIcons     = ref(false)
-
 async function openExplorer() {
   explorerOpen.value = true
   explorerStep.value = 'root'
@@ -174,7 +172,6 @@ async function openExplorer() {
   explorerSubtype.value = null
   explorerIcons.value = []
 }
-
 function selectCategory(cat) {
   explorerCategory.value = cat
   if (cat === 'BADGE') {
@@ -184,12 +181,10 @@ function selectCategory(cat) {
     explorerStep.value = 'cosmetic_sub'
   }
 }
-
 function selectCosmeticSubtype(sub) {
   explorerSubtype.value = sub
   loadIconsForExplorer(sub)
 }
-
 async function loadIconsForExplorer(type) {
   loadingIcons.value = true
   try {
@@ -203,7 +198,6 @@ async function loadIconsForExplorer(type) {
     loadingIcons.value = false
   }
 }
-
 function explorerBack() {
   if (explorerStep.value === 'grid') {
     if (explorerCategory.value === 'BADGE') {
@@ -218,7 +212,6 @@ function explorerBack() {
     explorerCategory.value = null
   }
 }
-
 function pickIcon(icon) {
   createForm.icon_id = icon.id
   createForm.icon_url = icon.filepath
@@ -226,38 +219,6 @@ function pickIcon(icon) {
   editForm.icon_url = icon.filepath
   explorerOpen.value = false
 }
-
-// ════════════════════════════════════════════════════════
-// 3. COMPUTED PROPERTIES & ONGLETS
-// ════════════════════════════════════════════════════════
-
-const TAB_GROUPS = {
-  achievement: [
-    { id: 'achievement_list', label: 'Liste' },
-    { id: 'achievement_requirements', label: 'Prérequis' },
-    { id: 'achievement_rewards', label: 'Récompenses' },
-  ],
-  badges: [
-    { id: 'badges_list', label: 'Liste' },
-    { id: 'badges_create', label: 'Créer' },
-    { id: 'badges_edit', label: 'Modifier', locked: () => !editTarget.value },
-  ],
-}
-
-const tabGroup = computed(() => {
-  if (props.initialTab.startsWith('badges')) return TAB_GROUPS.badges
-  return TAB_GROUPS.achievement
-})
-const activeTab = ref('achievement_list')
-
-const filteredAchievements = computed(() => {
-  if (!search.value.trim()) return achievements.value
-  const term = search.value.trim().toLowerCase()
-  return achievements.value.filter(a => 
-    a.name.toLowerCase().includes(term) || a.description.toLowerCase().includes(term)
-  )
-})
-
 function onTabChange(tab) {
   activeTab.value = tab
   if (tab === 'achievement_list') fetchAchievements()
@@ -266,31 +227,17 @@ function onTabChange(tab) {
   }
   if (tab === 'badges_list') fetchBadges()
 }
-
-const breadcrumbSubCategory = computed(() => {
-  if (activeTab.value.startsWith('badges_')) return 'Succès > Badges'
-  return 'Succès > Succès'
-})
-
 function getRequirementLabel(type) {
   return requirementTypeLabels[type] ?? type
 }
-
-// ════════════════════════════════════════════════════════
-// 4. POPUPS DE CONFIRMATION & GESTION LIGNES
-// ════════════════════════════════════════════════════════
 function addRequirementRow() {
   requirementRows.value.push({
     type: 'CHALLENGE_COMPLETION', challenge_id: '', category_id: '', count: '', target_date: '', badge_id: '', cosmetic_id: ''
   })
 }
 function removeRequirementRow(index) { requirementRows.value.splice(index, 1) }
-
 function addRewardRow() { rewardRows.value.push({ type: 'BADGE', reward_id: '', value: '' }) }
 function removeRewardRow(index) { rewardRows.value.splice(index, 1) }
-
-const confirmModal = reactive({ isOpen: false, title: '', message: '', loading: false, onConfirm: null })
-
 function triggerConfirm(title, message, callback) {
   confirmModal.title = title
   confirmModal.message = message
@@ -298,7 +245,6 @@ function triggerConfirm(title, message, callback) {
   confirmModal.onConfirm = callback
   confirmModal.isOpen = true
 }
-
 async function handleConfirmDialog() {
   if (confirmModal.onConfirm) {
     confirmModal.loading = true
@@ -308,16 +254,11 @@ async function handleConfirmDialog() {
     } catch (e) {} finally { confirmModal.loading = false }
   } else { closeConfirmDialog() }
 }
-
 function closeConfirmDialog() {
   confirmModal.isOpen = false
   confirmModal.loading = false
   confirmModal.onConfirm = null
 }
-
-// ════════════════════════════════════════════════════════
-// 5. FONCTIONS API (ACHIEVEMENTS)
-// ════════════════════════════════════════════════════════
 async function fetchAchievements() {
   loadingAchievements.value = true
   try {
@@ -325,7 +266,6 @@ async function fetchAchievements() {
     achievements.value = res.data?.achievements ?? res.data?.message ?? []
   } catch { achievements.value = [] } finally { loadingAchievements.value = false }
 }
-
 async function loadReferences() {
   try {
     const [cr, catr, br, cosr] = await Promise.all([
@@ -342,7 +282,6 @@ async function loadReferences() {
     console.error("Erreur chargement références", e)
   }
 }
-
 async function openDetailsPanel(achId, panelType) {
   try {
     const res = await axios.get(`/api/admin/achievement/${achId}/info`)
@@ -354,7 +293,6 @@ async function openDetailsPanel(achId, panelType) {
     showToast('Erreur lors du chargement des détails', 'error')
   }
 }
-
 async function deleteAchievement(id, name) {
   triggerConfirm('Supprimer l\'achievement', `Voulez-vous vraiment supprimer l'achievement "${name}" ?`, async () => {
     try {
@@ -367,7 +305,6 @@ async function deleteAchievement(id, name) {
     }
   })
 }
-
 async function deleteRequirement(reqId, achId) {
   triggerConfirm('Supprimer le prérequis', 'Voulez-vous vraiment supprimer ce prérequis ?', async () => {
     try {
@@ -378,7 +315,6 @@ async function deleteRequirement(reqId, achId) {
     } catch (e) { showToast(e.response?.data?.message ?? 'Erreur', 'error'); throw e }
   })
 }
-
 async function deleteReward(rewardId, achId) {
   triggerConfirm('Supprimer la récompense', 'Voulez-vous vraiment supprimer cette récompense ?', async () => {
     try {
@@ -389,10 +325,6 @@ async function deleteReward(rewardId, achId) {
     } catch (e) { showToast(e.response?.data?.message ?? 'Erreur', 'error'); throw e }
   })
 }
-
-// ════════════════════════════════════════════════════════
-// 6. FONCTIONS API (BADGES)
-// ════════════════════════════════════════════════════════
 async function fetchBadges() {
   loadingBadges.value = true
   try {
@@ -404,9 +336,7 @@ async function fetchBadges() {
     loadingBadges.value = false
   }
 }
-
 function toggleBadge(id) { expandedBadge.value = expandedBadge.value === id ? null : id }
-
 async function deleteBadge(id, name) {
   triggerConfirm('Supprimer le badge', `Supprimer le badge "${name}" ? Action irréversible.`, async () => {
     try {
@@ -420,7 +350,6 @@ async function deleteBadge(id, name) {
     }
   })
 }
-
 async function submitCreate() {
   if (!createForm.name || !createForm.description) {
     showToast('Le nom et la description sont requis', 'error'); return
@@ -445,7 +374,6 @@ async function submitCreate() {
     showToast(e.response?.data?.message ?? 'Erreur création', 'error')
   } finally { creating.value = false }
 }
-
 function openEdit(b) {
   editTarget.value = b.id
   activeTab.value = 'badges_edit'
@@ -457,7 +385,6 @@ function openEdit(b) {
     icon_url: b.icon_url ?? '',
   })
 }
-
 async function submitEdit() {
   if (!editForm.name || !editForm.description) {
     showToast('Le nom et la description sont requis', 'error'); return
@@ -472,9 +399,7 @@ async function submitEdit() {
     if (editForm.icon_id) {
       payload.new_icon_id = editForm.icon_id
     }
-
     await axios.post(`/api/admin/badge/${editTarget.value}/modify`, payload)
-
     showToast('Badge modifié !')
     activeTab.value = 'badges_list'
     editTarget.value = null
@@ -483,10 +408,6 @@ async function submitEdit() {
     showToast(e.response?.data?.message ?? 'Erreur modification', 'error')
   } finally { editing.value = false }
 }
-
-// ════════════════════════════════════════════════════════
-// 7. EXPORT CSV & SOUMISSIONS BATCH
-// ════════════════════════════════════════════════════════
 function exportTableToCsv(type) {
   if (!selectedAchievement.value) return
   exportingCsv.value = true
@@ -495,7 +416,6 @@ function exportTableToCsv(type) {
     let rows = []
     let filenamePrefix = ''
     const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
-
     if (type === 'requirements') {
       headers = ['ID', 'Type', 'Challenge ID', 'Category ID', 'Badge ID', 'Cosmetic ID', 'Count', 'Target Date']
       rows = (selectedAchievement.value.requirements || []).map(r => [
@@ -515,19 +435,15 @@ function exportTableToCsv(type) {
       ].map(escape).join(','))
       filenamePrefix = 'users'
     }
-
     if (!rows.length) { showToast("Aucune donnée à exporter", 'error'); return }
-
     const csv = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
-
     const now = new Date()
     const pad = (n) => String(n).padStart(2, '0')
     const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
     const safeName = (selectedAchievement.value.name || 'achievement').trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '')
     const filename = `${safeName}_${filenamePrefix}_${dateStr}.csv`
-
     const a = document.createElement('a')
     a.href = url
     a.download = filename
@@ -537,12 +453,10 @@ function exportTableToCsv(type) {
     showToast("Impossible d'exporter le fichier CSV", 'error')
   } finally { exportingCsv.value = false }
 }
-
 function openCreateAchievementModal() {
   Object.assign(achievementForm, { ...achievementFormDefaults })
   achievementModal.isOpen = true
 }
-
 async function submitCreateAchievement() {
   if (!achievementForm.name.trim() || !achievementForm.description.trim()) {
     showToast('Le nom et la description sont requis', 'error')
@@ -561,7 +475,6 @@ async function submitCreateAchievement() {
     showToast(e.response?.data?.message ?? 'Erreur lors de la création', 'error')
   } finally { creatingAchievement.value = false }
 }
-
 async function submitBatchRequirements() {
   if (!batchReqTargetId.value) { showToast('Veuillez sélectionner un succès cible', 'error'); return }
   addingBatchRequirements.value = true
@@ -578,7 +491,6 @@ async function submitBatchRequirements() {
       if (row.type === 'CONNECTION_DATE') data.target_date = row.target_date
       return data
     })
-
     await axios.post(`/api/admin/achievement/${batchReqTargetId.value}/requirements/add`, { requirements: payload })
     showToast('Prérequis ajoutés en masse avec succès !')
     requirementRows.value = [{ type: 'CHALLENGE_COMPLETION', challenge_id: '', category_id: '', count: '', target_date: '', badge_id: '', cosmetic_id: '' }]
@@ -588,7 +500,6 @@ async function submitBatchRequirements() {
     showToast(e.response?.data?.message ?? 'Erreur lors de l\'ajout groupé', 'error')
   } finally { addingBatchRequirements.value = false }
 }
-
 async function submitBatchRewards() {
   if (!batchRewTargetId.value) { showToast('Veuillez sélectionner un succès cible', 'error'); return }
   addingBatchRewards.value = true
@@ -602,7 +513,6 @@ async function submitBatchRewards() {
       }
       return data
     })
-
     await axios.post(`/api/admin/achievement/${batchRewTargetId.value}/reward/add`, { rewards: payload })
     showToast('Récompenses ajoutées en masse avec succès !')
     rewardRows.value = [{ type: 'BADGE', reward_id: '', value: '' }]
@@ -612,7 +522,6 @@ async function submitBatchRewards() {
     showToast(e.response?.data?.message ?? 'Erreur lors de l\'ajout groupé', 'error')
   } finally { addingBatchRewards.value = false }
 }
-
 function setSort(key) {
   if (sortKey.value === key) { sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc' } 
   else { sortKey.value = key; sortDir.value = 'asc' }
@@ -621,7 +530,6 @@ function setSort(key) {
     return a[sortKey.value] > b[sortKey.value] ? mod : -1 * mod
   })
 }
-
 watch(
   () => props.initialTab,
   async (newTab) => {
@@ -635,10 +543,6 @@ watch(
   },
   { immediate: true }
 )
-
-const loadingBatchReqs = ref(false)
-const batchSelectedAchievementDetails = ref(null)
-
 watch(batchReqTargetId, async (newId) => {
   if (!newId) {
     batchSelectedAchievementDetails.value = null
@@ -654,26 +558,6 @@ watch(batchReqTargetId, async (newId) => {
     loadingBatchReqs.value = false
   }
 })
-
-const loadingBatchRewardsList = ref(false)
-const batchSelectedRewardAchievementDetails = ref(null)
-
-watch(batchRewTargetId, async (newId) => {
-  if (!newId) {
-    batchSelectedRewardAchievementDetails.value = null
-    return
-  }
-  loadingBatchRewardsList.value = true
-  try {
-    const res = await axios.get(`/api/admin/achievement/${newId}/info`)
-    batchSelectedRewardAchievementDetails.value = res.data?.message ?? res.data?.data ?? res.data
-  } catch {
-    batchSelectedRewardAchievementDetails.value = null
-  } finally {
-    loadingBatchRewardsList.value = false
-  }
-})
-
 async function deleteBatchReward(rewardId) {
   triggerConfirm('Supprimer la récompense', 'Voulez-vous vraiment supprimer cette récompense ?', async () => {
     try {
@@ -690,7 +574,6 @@ async function deleteBatchReward(rewardId) {
     }
   })
 }
-
 function formatRequirementDetails(req) {
   if (['CHALLENGE_COMPLETION'].includes(req.type)) {
     const chall = allChallenges.value.find(c => c.id === req.challenge_id)
@@ -719,7 +602,6 @@ function formatRequirementDetails(req) {
   }
   return '—'
 }
-
 function formatRewardDetails(rew) {
   if (rew.type === 'BADGE') {
     const badge = allBadges.value.find(b => b.id === rew.reward_id)
@@ -734,7 +616,6 @@ function formatRewardDetails(rew) {
   }
   return '—'
 }
-
 async function deleteBatchRequirement(reqId) {
   triggerConfirm('Supprimer le prérequis', 'Voulez-vous vraiment supprimer ce prérequis ?', async () => {
     try {
@@ -751,11 +632,26 @@ async function deleteBatchRequirement(reqId) {
     }
   })
 }
+
+watch(batchRewTargetId, async (newId) => {
+  if (!newId) {
+    batchSelectedRewardAchievementDetails.value = null
+    return
+  }
+  loadingBatchRewardsList.value = true
+  try {
+    const res = await axios.get(`/api/admin/achievement/${newId}/info`)
+    batchSelectedRewardAchievementDetails.value = res.data?.message ?? res.data?.data ?? res.data
+  } catch {
+    batchSelectedRewardAchievementDetails.value = null
+  } finally {
+    loadingBatchRewardsList.value = false
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Titre Principal -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > {{ breadcrumbSubCategory }}</p>
@@ -764,8 +660,6 @@ async function deleteBatchRequirement(reqId) {
       <span v-if="activeTab === 'achievement_list'" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ achievements.length }} SUCCÈS</span>
       <span v-if="activeTab === 'badges_list'" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ badges.length }} BADGE{{ badges.length > 1 ? 'S' : '' }}</span>
     </div>
-
-    <!-- Barre d'onglets unifiée -->
     <div class="flex gap-0 border-b border-primary mb-6">
       <button
         v-for="tab in tabGroup"
@@ -782,19 +676,12 @@ async function deleteBatchRequirement(reqId) {
         ]"
       >{{ tab.label }}</button>
     </div>
-
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- SECTION ACHIEVEMENTS                                     -->
-    <!-- ════════════════════════════════════════════════════════ -->
-
-    <!-- TAB : LISTE DES ACHIEVEMENTS -->
     <div v-if="activeTab === 'achievement_list'" class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <button @click="openCreateAchievementModal" class="bg-primary text-base-100 hover:bg-primary/80 px-4 py-2 font-code text-xs font-bold transition-colors">
           <span>+ Créer un nouveau succès</span>
         </button>
       </div>
-
       <div class="flex items-center gap-2 flex-wrap mb-2">
         <div class="relative flex-1 min-w-48">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs">⌕</span>
@@ -802,7 +689,6 @@ async function deleteBatchRequirement(reqId) {
           class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none pl-7 pr-3 py-2 font-code text-xs text-base-content placeholder:text-base-content/25 transition-colors" />
         </div>
       </div>
-
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[1fr_2.5fr_1fr_1fr_1fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <button v-for="col in [{ key: 'name', label: 'Nom' }, { key: 'description', label: 'Description' }, { key: 'requirement_count', label: 'Prérequis' }, { key: 'reward_count', label: 'Récompenses' }, { key: 'users_count', label: 'Validé par' }]" :key="col.key" @click="setSort(col.key)" class="flex items-center gap-1 px-4 py-2.5 font-code text-[10px] uppercase text-base-content/40 hover:text-base-content">
@@ -810,7 +696,6 @@ async function deleteBatchRequirement(reqId) {
           </button>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingAchievements" class="flex justify-center py-16"><span class="loading loading-spinner text-primary"></span></div>
           <div v-else-if="!filteredAchievements.length" class="flex justify-center py-10"><span class="font-code text-xs text-base-content/25">Aucun succès</span></div>
@@ -837,11 +722,8 @@ async function deleteBatchRequirement(reqId) {
         </div>
       </div>
     </div>
-
-    <!-- TAB : AJOUT DE PRÉREQUIS (BATCH) -->
     <div v-if="activeTab === 'achievement_requirements'" class="max-w-4xl border border-base-300 bg-base-200/40 p-6 flex flex-col gap-4">
       <h2 class="font-titre font-bold text-lg">Ajouter des prérequis</h2>
-      
       <div class="flex flex-col gap-1">
         <label class="font-code text-[10px] uppercase text-base-content/50">Sélectionner le succès cible *</label>
         <select v-model="batchReqTargetId" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm outline-none">
@@ -849,8 +731,6 @@ async function deleteBatchRequirement(reqId) {
           <option v-for="ach in achievements" :key="ach.id" :value="ach.id">#{{ ach.id }} - {{ ach.name }}</option>
         </select>
       </div>
-
-      <!-- LISTE DES PRÉREQUIS DÉJÀ ENREGISTRÉS -->
       <div v-if="batchReqTargetId" class="flex flex-col gap-2 bg-base-100 border border-base-300 p-4">
         <p class="font-code text-[10px] uppercase tracking-widest text-primary font-bold">Prérequis actuels du succès</p>
         <div v-if="loadingBatchReqs" class="py-2 text-xs font-code text-base-content/40">Chargement...</div>
@@ -865,7 +745,6 @@ async function deleteBatchRequirement(reqId) {
           </div>
         </div>
       </div>
-
       <div class="flex flex-col gap-3 mt-4">
         <div v-for="(row, index) in requirementRows" :key="index" class="flex items-center gap-2 bg-base-100 border border-base-300 p-3">
           <select v-model="row.type" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none">
@@ -882,42 +761,32 @@ async function deleteBatchRequirement(reqId) {
             <option value="CONNECTION_DATE">Date de connexion spécifique</option>
             <option value="CONNECTION_STREAK">Série de connexions consécutives (Streak)</option>
           </select>
-
           <select v-if="['CHALLENGE_COMPLETION'].includes(row.type)" v-model="row.challenge_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Challenge --</option>
             <option v-for="c in allChallenges" :key="c.id" :value="c.id">{{ c.name }} - {{ c.category }}</option>
           </select>
-
           <select v-if="['CATEGORY_COMPLETION', 'CATEGORY_COMPLETION_COUNT'].includes(row.type)" v-model="row.category_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Catégorie --</option>
             <option v-for="cat in allCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
           </select>
-
           <select v-if="['BADGE_OWNERSHIP'].includes(row.type)" v-model="row.badge_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Badge --</option>
             <option v-for="b in allBadges" :key="b.id" :value="b.id">{{ b.name }}</option>
           </select>
-
           <select v-if="['COSMETIC_OWNERSHIP'].includes(row.type)" v-model="row.cosmetic_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Cosmétique --</option>
             <option v-for="cos in allCosmetics" :key="cos.id" :value="cos.id">{{ cos.name }}</option>
           </select>
-
           <input v-if="['CHALLENGE_COMPLETION_COUNT', 'CATEGORY_COMPLETION_COUNT', 'COSMETIC_OWNERSHIP_COUNT', 'BADGE_OWNERSHIP_COUNT', 'POINTS_EARNED', 'LEVEL_REACHED', 'CONNECTION_STREAK'].includes(row.type)" v-model="row.count" type="number" placeholder="Quantité" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none w-28" />
-
           <input v-if="row.type === 'CONNECTION_DATE'" v-model="row.target_date" type="datetime-local" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none" />
-
           <button @click="removeRequirementRow(index)" v-if="requirementRows.length > 1" class="text-error font-bold px-2">×</button>
         </div>
       </div>
-
       <div class="flex items-center justify-between mt-2">
         <button @click="addRequirementRow" class="bg-secondary/20 text-secondary border border-secondary px-3 py-1.5 font-code text-xs">+ Ajouter un prérequis</button>
         <button @click="submitBatchRequirements" :disabled="addingBatchRequirements" class="bg-primary text-base-100 px-5 py-2 font-code text-xs font-bold">Valider</button>
       </div>
     </div>
-
-    <!-- TAB : AJOUT DE RÉCOMPENSES (BATCH) -->
     <div v-if="activeTab === 'achievement_rewards'" class="max-w-4xl border border-base-300 bg-base-200/40 p-6 flex flex-col gap-4">
       <h2 class="font-titre font-bold text-lg">Ajouter des récompenses</h2>
       
@@ -928,8 +797,6 @@ async function deleteBatchRequirement(reqId) {
           <option v-for="ach in achievements" :key="ach.id" :value="ach.id">#{{ ach.id }} - {{ ach.name }}</option>
         </select>
       </div>
-
-      <!-- LISTE DES RÉCOMPENSES DÉJÀ ENREGISTRÉES -->
       <div v-if="batchRewTargetId" class="flex flex-col gap-2 bg-base-100 border border-base-300 p-4">
         <p class="font-code text-[10px] uppercase tracking-widest text-primary font-bold">Récompenses actuelles du succès</p>
         <div v-if="loadingBatchRewardsList" class="py-2 text-xs font-code text-base-content/40">Chargement...</div>
@@ -944,7 +811,6 @@ async function deleteBatchRequirement(reqId) {
           </div>
         </div>
       </div>
-
       <div class="flex flex-col gap-3 mt-4">
         <div v-for="(row, index) in rewardRows" :key="index" class="flex items-center gap-2 bg-base-100 border border-base-300 p-3">
           <select v-model="row.type" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none">
@@ -953,43 +819,29 @@ async function deleteBatchRequirement(reqId) {
             <option value="POINTS">POINTS</option>
             <option value="XP">XP</option>
           </select>
-
           <select v-if="row.type === 'BADGE'" v-model="row.reward_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Choisir un badge --</option>
             <option v-for="b in allBadges" :key="b.id" :value="b.id">{{ b.name }}</option>
           </select>
-
           <select v-if="row.type === 'COSMETIC'" v-model="row.reward_id" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1">
             <option value="">-- Choisir un cosmétique --</option>
             <option v-for="cos in allCosmetics" :key="cos.id" :value="cos.id">{{ cos.name }}</option>
           </select>
-
           <input v-if="['POINTS', 'XP'].includes(row.type)" v-model="row.value" type="number" placeholder="Valeur (ex: 500)" class="bg-base-200 border border-base-300 px-2 py-1.5 font-code text-xs outline-none flex-1" />
-
           <button @click="removeRewardRow(index)" v-if="rewardRows.length > 1" class="text-error font-bold px-2">×</button>
         </div>
       </div>
-
       <div class="flex items-center justify-between mt-2">
         <button @click="addRewardRow" class="bg-secondary/20 text-secondary border border-secondary px-3 py-1.5 font-code text-xs">+ Ajouter une récompense</button>
         <button @click="submitBatchRewards" :disabled="addingBatchRewards" class="bg-primary text-base-100 px-5 py-2 font-code text-xs font-bold">Valider</button>
       </div>
     </div>
-
-
-    <!-- ════════════════════════════════════════════════════════ -->
-    <!-- SECTION BADGES                                           -->
-    <!-- ════════════════════════════════════════════════════════ -->
-
-    <!-- TAB : LISTE DES BADGES -->
     <div v-if="activeTab === 'badges_list'" class="flex flex-col gap-4">
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <button @click="activeTab = 'badges_create'" class="bg-primary text-base-100 hover:bg-primary/80 px-4 py-2 font-code text-xs font-bold transition-colors shadow-sm">
           <span>+ Créer un nouveau badge</span>
         </button>
       </div>
-
-      <!-- Barre de recherche et filtre type -->
       <div class="flex items-center gap-2 flex-wrap mb-2">
         <div class="relative flex-1 min-w-48">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -1011,7 +863,6 @@ async function deleteBatchRequirement(reqId) {
           <option value="ADMIN">Admin</option>
         </select>
       </div>
-
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[1fr_2.5fr_1.5fr_1.5fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Aperçu</div>
@@ -1020,7 +871,6 @@ async function deleteBatchRequirement(reqId) {
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Description</div>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingBadges" class="flex justify-center py-16"><span class="loading loading-spinner text-primary"></span></div>
           <div v-else-if="!filteredBadgesTable.length" class="flex justify-center py-10"><span class="font-code text-xs text-base-content/25">Aucun badge trouvé</span></div>
@@ -1041,12 +891,8 @@ async function deleteBatchRequirement(reqId) {
                   <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteBadge(b.id, b.name)" title="Supprimer">Supprimer</button>
                 </div>
               </div>
-
-              <!-- Accordéon de détails modernisé (ID, type, nom, créateur, stats possession, bouton modal) -->
               <div v-if="expandedBadge === b.id" class="border-b border-base-300 bg-base-300/50 p-6" @click.stop>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                  
-                  <!-- Colonne 1 : Aperçu & Infos de base -->
                   <div class="flex flex-col gap-4">
                     <div class="flex items-center gap-4">
                       <div class="w-16 h-16 bg-base-100 border border-base-300 flex items-center justify-center overflow-hidden shrink-0">
@@ -1059,27 +905,21 @@ async function deleteBatchRequirement(reqId) {
                         <span :class="['inline-block mt-1 px-2 py-0.5 text-[10px] font-code uppercase', typeClass(b.type)]">{{ b.type }}</span>
                       </div>
                     </div>
-
                     <dl class="grid grid-cols-2 gap-2 text-xs font-code bg-base-100/40 p-3 border border-base-300">
                       <dt class="text-base-content/40">Créateur</dt><dd class="text-base-content font-medium text-right">{{ b.created_by ?? '—' }}</dd>
                     </dl>
                   </div>
-
-                  <!-- Colonne 2 : Statistiques & Description -->
                   <div class="flex flex-col gap-4">
                     <p class="font-code text-[10px] tracking-widest uppercase text-primary/70">Statistiques</p>
                     <div class="bg-base-100/60 border border-base-300 p-3 text-center">
                       <p class="font-titre font-bold text-primary text-xl leading-none">{{ b.user_count ?? 0 }}</p>
                       <p class="font-code text-[9px] uppercase tracking-widest text-base-content/40 mt-1">Utilisateur{{ b.user_count > 1 ? 's' : '' }} posséde{{ b.user_count > 1 ? 'nt' : '' }} ce badge</p>
                     </div>
-
                     <div>
                       <p class="font-code text-[10px] tracking-widest uppercase text-base-content/40 mb-1">Description</p>
                       <p class="text-xs text-base-content/70 bg-base-200/60 border border-base-300 p-3 leading-relaxed">{{ b.description || 'Aucune description.' }}</p>
                     </div>
                   </div>
-
-                  <!-- Colonne 3 : Action de gestion des attributions -->
                   <div class="flex flex-col justify-between h-full bg-base-100/30 p-4 border border-base-300">
                     <div>
                       <p class="font-code text-[10px] tracking-widest uppercase text-primary/70 mb-2">Gestion des attributions</p>
@@ -1092,7 +932,6 @@ async function deleteBatchRequirement(reqId) {
                       Gérer les attributions...
                     </button>
                   </div>
-
                 </div>
               </div>
             </template>
@@ -1100,21 +939,16 @@ async function deleteBatchRequirement(reqId) {
         </div>
       </div>
     </div>
-
-    <!-- TAB : CRÉER UN BADGE -->
     <div v-if="activeTab === 'badges_create'" class="w-full">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-        <!-- Formulaire de gauche -->
         <div class="border border-base-300 bg-base-200/40 p-6">
           <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Nouveau badge</p>
           <h2 class="font-titre font-bold text-lg text-base-content mb-6">Créer un badge</h2>
-          
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom *</label>
               <input v-model="createForm.name" type="text" placeholder="Premier sang" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content" />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type</label>
               <select v-model="createForm.type" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content">
@@ -1124,13 +958,11 @@ async function deleteBatchRequirement(reqId) {
                 <option value="ADMIN">ADMIN</option>
               </select>
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description *</label>
               <textarea v-model="createForm.description" rows="3" placeholder="Description du badge..." class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content resize-none"></textarea>
             </div>
           </div>
-
           <div class="flex gap-3 mt-6">
             <button @click="submitCreate" :disabled="creating || !createForm.name || !createForm.icon_id" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 flex items-center gap-2">
               <span v-if="creating" class="loading loading-xs"></span>
@@ -1139,14 +971,11 @@ async function deleteBatchRequirement(reqId) {
             <button @click="activeTab = 'badges_list'" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content transition-colors">Annuler</button>
           </div>
         </div>
-
-        <!-- Explorateur de droite (Création badge) -->
         <div class="border border-primary/30 bg-base-100/80 p-6 shadow-xl">
           <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
             <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Explorateur d'icônes</span>
             <button v-if="explorerStep !== 'root'" @click="explorerBack" class="font-code text-xs text-primary">← Revenir en arrière</button>
           </div>
-
           <div v-if="explorerStep === 'root'" class="grid grid-cols-2 gap-4 py-8">
             <div @click="selectCategory('COSMETIC')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
               <span class="text-3xl mb-2">📁</span>
@@ -1157,7 +986,6 @@ async function deleteBatchRequirement(reqId) {
               <span class="font-code text-xs font-bold text-base-content">Badges</span>
             </div>
           </div>
-
           <div v-else-if="explorerStep === 'cosmetic_sub'" class="grid grid-cols-2 gap-4 py-8">
             <div @click="selectCosmeticSubtype('AVATAR')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
               <span class="text-3xl mb-2">📁</span>
@@ -1168,7 +996,6 @@ async function deleteBatchRequirement(reqId) {
               <span class="font-code text-xs font-bold text-base-content">Bannières</span>
             </div>
           </div>
-
           <div v-else-if="explorerStep === 'grid'">
             <div v-if="loadingIcons" class="flex justify-center py-12"><span class="loading loading-spinner text-primary"></span></div>
             <div v-else-if="!explorerIcons.length" class="text-center py-12 font-code text-xs text-base-content/40">Aucune icône dans ce dossier.</div>
@@ -1186,7 +1013,6 @@ async function deleteBatchRequirement(reqId) {
               </div>
             </div>
           </div>
-
           <div class="mt-6 pt-4 border-t border-base-300 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 border border-base-300 bg-base-200 flex items-center justify-center overflow-hidden">
@@ -1198,21 +1024,16 @@ async function deleteBatchRequirement(reqId) {
         </div>
       </div>
     </div>
-
-    <!-- TAB : MODIFIER UN BADGE -->
     <div v-if="activeTab === 'badges_edit' && editTarget" class="w-full">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-        <!-- Formulaire de gauche -->
         <div class="border border-base-300 bg-base-200/40 p-6">
           <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Badge #{{ editTarget }}</p>
           <h2 class="font-titre font-bold text-lg text-base-content mb-6">Modifier le badge</h2>
-          
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom *</label>
               <input v-model="editForm.name" type="text" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content" />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type</label>
               <select v-model="editForm.type" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content">
@@ -1222,13 +1043,11 @@ async function deleteBatchRequirement(reqId) {
                 <option value="ADMIN">ADMIN</option>
               </select>
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description *</label>
               <textarea v-model="editForm.description" rows="3" class="bg-base-100 border border-base-300 px-3 py-2 font-code text-sm text-base-content resize-none"></textarea>
             </div>
           </div>
-
           <div class="flex gap-3 mt-6">
             <button @click="submitEdit" :disabled="editing" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 flex items-center gap-2">
               <span v-if="editing" class="loading loading-xs"></span>
@@ -1237,14 +1056,11 @@ async function deleteBatchRequirement(reqId) {
             <button @click="activeTab = 'badges_list'; editTarget = null" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content transition-colors">Annuler</button>
           </div>
         </div>
-
-        <!-- Explorateur de droite (Modification badge) -->
         <div class="border border-primary/30 bg-base-100/80 p-6 shadow-xl">
           <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
             <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Explorateur d'icônes</span>
             <button v-if="explorerStep !== 'root'" @click="explorerBack" class="font-code text-xs text-primary">← Revenir en arrière</button>
           </div>
-
           <div v-if="explorerStep === 'root'" class="grid grid-cols-2 gap-4 py-8">
             <div @click="selectCategory('COSMETIC')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
               <span class="text-3xl mb-2">📁</span>
@@ -1255,7 +1071,6 @@ async function deleteBatchRequirement(reqId) {
               <span class="font-code text-xs font-bold text-base-content">Badges</span>
             </div>
           </div>
-
           <div v-else-if="explorerStep === 'cosmetic_sub'" class="grid grid-cols-2 gap-4 py-8">
             <div @click="selectCosmeticSubtype('AVATAR')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
               <span class="text-3xl mb-2">📁</span>
@@ -1266,7 +1081,6 @@ async function deleteBatchRequirement(reqId) {
               <span class="font-code text-xs font-bold text-base-content">Bannières</span>
             </div>
           </div>
-
           <div v-else-if="explorerStep === 'grid'">
             <div v-if="loadingIcons" class="flex justify-center py-12"><span class="loading loading-spinner text-primary"></span></div>
             <div v-else-if="!explorerIcons.length" class="text-center py-12 font-code text-xs text-base-content/40">Aucune icône dans ce dossier.</div>
@@ -1284,7 +1098,6 @@ async function deleteBatchRequirement(reqId) {
               </div>
             </div>
           </div>
-
           <div class="mt-6 pt-4 border-t border-base-300 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 border border-base-300 bg-base-200 flex items-center justify-center overflow-hidden">
@@ -1296,10 +1109,7 @@ async function deleteBatchRequirement(reqId) {
         </div>
       </div>
     </div>
-
   </div>
-
-  <!-- MODALE GESTION DES ATTRIBUTIONS DE BADGES -->
   <Teleport to="body">
     <div v-if="assignModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="assignModalOpen = false">
       <div class="w-full max-w-lg bg-base-200 border border-base-300 flex flex-col shadow-2xl p-6">
@@ -1310,7 +1120,6 @@ async function deleteBatchRequirement(reqId) {
           </div>
           <button @click="assignModalOpen = false" class="font-code text-xs text-error hover:text-error/70">Fermer</button>
         </div>
-
         <div class="flex flex-col gap-4">
           <div class="relative">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Rechercher un utilisateur</label>
@@ -1358,8 +1167,6 @@ async function deleteBatchRequirement(reqId) {
       </div>
     </div>
   </Teleport>
-
-  <!-- MODALE CRÉATION D'ACHIEVEMENT -->
   <div v-if="achievementModal.isOpen" class="fixed inset-0 z-40 flex items-center justify-center bg-base-300/80 backdrop-blur-sm p-4">
     <div class="bg-base-100 border border-base-300 shadow-2xl max-w-lg w-full p-6 animate-fade-in">
       <div class="flex justify-between items-center mb-6">
@@ -1379,8 +1186,6 @@ async function deleteBatchRequirement(reqId) {
       </div>
     </div>
   </div>
-
-  <!-- PANNEAUX MODALES DETAILS (PRÉREQUIS / RÉCOMPENSES / USERS) -->
   <Teleport to="body">
     <div v-if="requirementsPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="requirementsPanelOpen = false">
       <div class="w-full max-w-3xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl">
@@ -1409,7 +1214,6 @@ async function deleteBatchRequirement(reqId) {
       </div>
     </div>
   </Teleport>
-
   <Teleport to="body">
     <div v-if="rewardsPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="rewardsPanelOpen = false">
       <div class="w-full max-w-3xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl">
@@ -1438,7 +1242,6 @@ async function deleteBatchRequirement(reqId) {
       </div>
     </div>
   </Teleport>
-
   <Teleport to="body">
     <div v-if="usersPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="usersPanelOpen = false">
       <div class="w-full max-w-3xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl">
@@ -1466,6 +1269,5 @@ async function deleteBatchRequirement(reqId) {
       </div>
     </div>
   </Teleport>
-
   <PopUpConfirm :is-open="confirmModal.isOpen" :title="confirmModal.title" :message="confirmModal.message" :loading="confirmModal.loading" @confirm="handleConfirmDialog" @cancel="closeConfirmDialog" />
 </template>

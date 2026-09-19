@@ -10,17 +10,11 @@ const props = defineProps({
     default: 'image',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS
-// ════════════════════════════════════════════════════════
 const images         = ref([])
 const totalImages    = ref(0)
 const loadingImages  = ref(false)
 const expandedImage  = ref(null)
 const imageDetail    = ref(null)
-
-// Instances Docker & Recherche dynamique / Modale
 const instances            = ref([])
 const loadingInstances     = ref(false)
 const userSuggestions      = ref([])
@@ -28,50 +22,33 @@ const challengeSuggestions = ref([])
 const launchingInst        = ref(false)
 const instanceForm         = reactive({ user_id: '', challenge_id: '' })
 const isLaunchModalOpen    = ref(false)
-
-// États pour les inputs de recherche (Modale de lancement)
 const userSearchInput       = ref('')
 const userDropdownOpen      = ref(false)
 const challengeSearchInput  = ref('')
 const challengeDropdownOpen = ref(false)
-
-// Filtres et Tri (Liste images)
 const search         = ref('')
 const sortKey        = ref('name')
 const sortDir        = ref('asc')
-
 const currentPage    = ref(1)
 const itemsPerPage   = 25
-
-// États pour les formulaires Images & Fichier ZIP
 const createDefaults = { 
   image_name: '', image_tag: 'latest', internal_port: 80, memory_limit: '256m' 
 }
 const createForm   = reactive({ ...createDefaults })
 const createZipFile = ref(null)
 const creating     = ref(false)
-
 const editTarget = ref(null)
 const editForm   = reactive({ 
   image_name: '', image_tag: '', internal_port: 80, memory_limit: '256m' 
 })
 const editing    = ref(false)
-
-// ════════════════════════════════════════════════════════
-// 2. COMPUTED PROPERTIES
-// ════════════════════════════════════════════════════════
 const tabGroup = computed(() => TAB_GROUPS[props.initialTab] ?? TAB_GROUPS.image)
 const activeTab = ref('image_list')
-
 const filteredImagesTable = computed(() => {
   if (!search.value.trim()) return images.value
   const term = search.value.trim().toLowerCase()
   return images.value.filter(img => img.name.toLowerCase().includes(term) || img.image_tag.toLowerCase().includes(term))
 })
-
-// ════════════════════════════════════════════════════════
-// 3. CONFIGURATION DES ONGLETS & HELPERS UI
-// ════════════════════════════════════════════════════════
 const TAB_GROUPS = {
   image: [
     { id: 'image_list', label: 'Liste' },
@@ -82,12 +59,23 @@ const TAB_GROUPS = {
     { id: 'instance_list', label: 'Liste' },
   ]
 }
+const breadcrumbSubCategory = computed(() => {
+  if (activeTab.value.startsWith('image_')) return 'Images'
+  if (activeTab.value.startsWith('instance_')) return 'Instances'
+  return 'Docker'
+})
+const confirmModal = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  loading: false,
+  onConfirm: null
+})
 
 function defaultTabForGroup(groupKey) {
   if (groupKey === 'instance') return 'instance_list'
   return 'image_list'
 }
-
 function onTabChange(tab) {
   activeTab.value = tab
   if (tab === 'image_list') fetchImages()
@@ -97,24 +85,6 @@ function onTabChange(tab) {
     createZipFile.value = null
   }
 }
-
-const breadcrumbSubCategory = computed(() => {
-  if (activeTab.value.startsWith('image_')) return 'Images'
-  if (activeTab.value.startsWith('instance_')) return 'Instances'
-  return 'Docker'
-})
-
-// ════════════════════════════════════════════════════════
-// 4. GESTION DES POPUPS DE CONFIRMATION
-// ════════════════════════════════════════════════════════
-const confirmModal = reactive({
-  isOpen: false,
-  title: '',
-  message: '',
-  loading: false,
-  onConfirm: null
-})
-
 function triggerConfirm(title, message, callback) {
   confirmModal.title = title
   confirmModal.message = message
@@ -122,7 +92,6 @@ function triggerConfirm(title, message, callback) {
   confirmModal.onConfirm = callback
   confirmModal.isOpen = true
 }
-
 async function handleConfirmDialog() {
   if (confirmModal.onConfirm) {
     confirmModal.loading = true
@@ -138,16 +107,11 @@ async function handleConfirmDialog() {
     closeConfirmDialog()
   }
 }
-
 function closeConfirmDialog() {
   confirmModal.isOpen = false
   confirmModal.loading = false
   confirmModal.onConfirm = null
 }
-
-// ════════════════════════════════════════════════════════
-// 5. FONCTIONS API & RECHERCHE DYNAMIQUE (Images & Instances)
-// ════════════════════════════════════════════════════════
 async function fetchImages() {
   loadingImages.value = true
   try {
@@ -161,7 +125,6 @@ async function fetchImages() {
     loadingImages.value = false
   }
 }
-
 async function fetchInstances() {
   loadingInstances.value = true
   try {
@@ -173,55 +136,16 @@ async function fetchInstances() {
     loadingInstances.value = false
   }
 }
-
-// Recherche dynamique des utilisateurs via la route list avec le paramètre search
-watch(userSearchInput, async (newVal) => {
-  if (!newVal || newVal.trim().length === 0) {
-    userSuggestions.value = []
-    return
-  }
-  try {
-    const res = await axios.get('/api/admin/user/list', {
-      params: { search: newVal.trim(), limit: 10 }
-    })
-    userSuggestions.value = res.data?.users ?? []
-    userDropdownOpen.value = true
-  } catch {
-    userSuggestions.value = []
-  }
-})
-
-// Recherche dynamique des challenges via la route list avec le paramètre search
-watch(challengeSearchInput, async (newVal) => {
-  if (!newVal || newVal.trim().length === 0) {
-    challengeSuggestions.value = []
-    challengeDropdownOpen.value = false
-    return
-  }
-  try {
-    const res = await axios.get('/api/admin/challenge/list', {
-      params: { search: newVal.trim(), limit: 10 }
-    })
-    challengeSuggestions.value = res.data?.challenges ?? res.data?.data ?? []
-    challengeDropdownOpen.value = true
-  } catch (e) {
-    console.error("Erreur recherche challenges :", e)
-    challengeSuggestions.value = []
-  }
-})
-
 function selectUserForLaunch(u) {
   instanceForm.user_id = u.id
   userSearchInput.value = u.username
   userDropdownOpen.value = false
 }
-
 function selectChallengeForLaunch(c) {
   instanceForm.challenge_id = c.id
   challengeSearchInput.value = c.name
   challengeDropdownOpen.value = false
 }
-
 function openLaunchModal() {
   instanceForm.user_id = ''
   instanceForm.challenge_id = ''
@@ -231,7 +155,6 @@ function openLaunchModal() {
   challengeSuggestions.value = []
   isLaunchModalOpen.value = true
 }
-
 async function submitLaunchInstance() {
   if (!instanceForm.user_id || !instanceForm.challenge_id) return
   launchingInst.value = true
@@ -250,7 +173,6 @@ async function submitLaunchInstance() {
     launchingInst.value = false
   }
 }
-
 function stopAdminInstance(userId, challengeId, containerName) {
   triggerConfirm(
     'Stopper l\'instance',
@@ -268,7 +190,6 @@ function stopAdminInstance(userId, challengeId, containerName) {
     }
   )
 }
-
 async function toggleImage(id) {
   if (expandedImage.value === id) {
     expandedImage.value = null
@@ -284,7 +205,6 @@ async function toggleImage(id) {
     imageDetail.value = images.value.find(i => i.id === id) || null
   }
 }
-
 function deleteImage(id, name) {
   triggerConfirm(
     'Supprimer l\'image Docker',
@@ -302,7 +222,6 @@ function deleteImage(id, name) {
     }
   )
 }
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -317,22 +236,16 @@ function setSort(key) {
     return 0
   })
 }
-
 function clearFilters() {
   search.value = ''
   currentPage.value = 1
 }
-
-// ════════════════════════════════════════════════════════
-// 6. FORMULAIRES CRÉATION / MODIFICATION IMAGE
-// ════════════════════════════════════════════════════════
 function onZipFileChange(e) {
   const file = e.target.files[0]
   if (file) {
     createZipFile.value = file
   }
 }
-
 function handleFileDrop(e) {
   const file = e.dataTransfer.files[0]
   if (file && file.name.endsWith('.zip')) {
@@ -341,7 +254,6 @@ function handleFileDrop(e) {
     showToast('Veuillez déposer un fichier au format .zip', 'error')
   }
 }
-
 async function submitCreate() {
   if (!createForm.image_name.trim()) {
     showToast('Le nom de l\'image est obligatoire', 'error')
@@ -351,7 +263,6 @@ async function submitCreate() {
     showToast('Le fichier ZIP de configuration est obligatoire', 'error')
     return
   }
-
   creating.value = true
   try {
     const formData = new FormData()
@@ -360,7 +271,6 @@ async function submitCreate() {
     formData.append('internal_port', Number(createForm.internal_port))
     formData.append('memory_limit', createForm.memory_limit.trim() || '256m')
     formData.append('file', createZipFile.value)
-
     const res = await axios.post('/api/admin/docker/image/create', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
@@ -376,7 +286,6 @@ async function submitCreate() {
     creating.value = false
   }
 }
-
 async function openEdit(img) {
   editTarget.value = img.id
   activeTab.value = 'image_edit'
@@ -387,7 +296,6 @@ async function openEdit(img) {
     memory_limit: img.memory_limit
   })
 }
-
 async function submitEdit() {
   editing.value = true
   try {
@@ -409,6 +317,38 @@ async function submitEdit() {
   }
 }
 
+watch(userSearchInput, async (newVal) => {
+  if (!newVal || newVal.trim().length === 0) {
+    userSuggestions.value = []
+    return
+  }
+  try {
+    const res = await axios.get('/api/admin/user/list', {
+      params: { search: newVal.trim(), limit: 10 }
+    })
+    userSuggestions.value = res.data?.users ?? []
+    userDropdownOpen.value = true
+  } catch {
+    userSuggestions.value = []
+  }
+})
+watch(challengeSearchInput, async (newVal) => {
+  if (!newVal || newVal.trim().length === 0) {
+    challengeSuggestions.value = []
+    challengeDropdownOpen.value = false
+    return
+  }
+  try {
+    const res = await axios.get('/api/admin/challenge/list', {
+      params: { search: newVal.trim(), limit: 10 }
+    })
+    challengeSuggestions.value = res.data?.challenges ?? res.data?.data ?? []
+    challengeDropdownOpen.value = true
+  } catch (e) {
+    console.error("Erreur recherche challenges :", e)
+    challengeSuggestions.value = []
+  }
+})
 watch(
   () => props.initialTab,
   async (groupKey) => {
@@ -433,7 +373,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Titre Principal -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > Docker > {{ breadcrumbSubCategory }}</p>
@@ -442,8 +381,6 @@ onMounted(() => {
       <span v-if="activeTab.includes('image')" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ images.length }} IMAGE{{ images.length > 1 ? 'S' : '' }}</span>
       <span v-if="activeTab.includes('instance')" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ instances.length }} INSTANCE{{ instances.length > 1 ? 'S' : '' }}</span>
     </div>
-
-    <!-- Barre d'onglets -->
     <div class="flex gap-0 border-b border-primary mb-6">
       <button
         v-for="tab in tabGroup"
@@ -460,8 +397,6 @@ onMounted(() => {
         ]"
       >{{ tab.label }}</button>
     </div>
-
-    <!-- ── TAB : LISTE DES IMAGES ── -->
     <div v-if="activeTab === 'image_list'" class="flex flex-col gap-4">
       <div class="flex justify-start">
         <button
@@ -471,8 +406,6 @@ onMounted(() => {
           <span>+ Créer une nouvelle image Docker</span>
         </button>
       </div>
-
-      <!-- Filtres et recherche -->
       <div class="flex items-center gap-2 flex-wrap mb-2">
         <div class="relative flex-1 min-w-48">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -484,8 +417,6 @@ onMounted(() => {
           />
         </div>
       </div>
-
-      <!-- Tableau -->
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[2fr_1.5fr_1fr_1fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <button
@@ -504,7 +435,6 @@ onMounted(() => {
           </button>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingImages" class="flex justify-center py-16">
             <span class="loading loading-spinner loading-md text-primary"></span>
@@ -539,8 +469,6 @@ onMounted(() => {
                   <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteImage(img.id, img.name)" title="Supprimer">Supprimer</button>
                 </div>
               </div>
-
-              <!-- Accordéon de détails de l'image -->
               <div v-if="expandedImage === img.id" class="border-b border-base-300 bg-base-300/50 p-5">
                 <p class="font-stitre text-[12px] tracking-widest uppercase text-primary/70 mb-3">Détails de l'image Docker</p>
                 <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm font-text max-w-lg">
@@ -557,7 +485,6 @@ onMounted(() => {
             </template>
           </div>
         </div>
-
         <div class="border-t border-base-300 px-4 py-2 bg-base-200/50 flex items-center justify-between shrink-0">
           <span class="font-code text-[10px] text-base-content/30">{{ filteredImagesTable.length }} / {{ images.length }} IMAGE{{ filteredImagesTable.length > 1 ? 'S' : '' }}</span>
           <span
@@ -568,38 +495,29 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- ── TAB : CRÉATION D'IMAGE DOCKER ── -->
     <div v-if="activeTab === 'image_create'" class="w-full">
       <div class="border border-base-300 bg-base-200/40 p-6 max-w-4xl">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Nouvelle image</p>
         <h2 class="font-titre font-bold text-lg text-base-content mb-6">Enregistrer et builder une image Docker</h2>
-        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          <!-- Colonne gauche : Formulaire -->
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom de l'image *</label>
               <input v-model="createForm.image_name" type="text" placeholder="guardihack/challenge-web" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors" />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Tag</label>
               <input v-model="createForm.image_tag" type="text" placeholder="latest" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors" />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Port interne *</label>
               <input v-model.number="createForm.internal_port" type="number" min="1" placeholder="80" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Limite de mémoire (ex: 256m, 1g)</label>
               <input v-model="createForm.memory_limit" type="text" placeholder="256m" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
             </div>
           </div>
-
-          <!-- Colonne droite : Rectangle de dépot de fichier ZIP -->
           <div class="flex flex-col gap-1 h-full">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Configuration Docker (ZIP) *</label>
             <div
@@ -615,8 +533,6 @@ onMounted(() => {
                 class="hidden"
                 @change="onZipFileChange"
               />
-              
-              <!-- État : Aucun fichier sélectionné -->
               <div v-if="!createZipFile" class="flex flex-col items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -624,8 +540,6 @@ onMounted(() => {
                 <p class="font-code text-xs text-base-content/70">Glissez-déposez votre archive ZIP ici ou <span class="text-primary underline">parcourez</span></p>
                 <span class="text-[10px] font-code text-base-content/40">Contient le Dockerfile et les fichiers nécessaires</span>
               </div>
-
-              <!-- État : Fichier pris en compte avec succès -->
               <div v-else class="flex flex-col items-center gap-2" @click.stop>
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -637,7 +551,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
         <div class="flex gap-3 mt-8 pt-4 border-t border-base-300">
           <button @click="submitCreate" :disabled="creating || !createForm.image_name || !createZipFile" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 flex items-center gap-2">
             <span v-if="creating" class="loading loading-xs"></span>
@@ -647,8 +560,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- ── TAB : MODIFICATION D'IMAGE DOCKER ── -->
     <div v-if="activeTab === 'image_edit' && editTarget" class="w-full">
       <div class="border border-base-300 bg-base-200/40 p-6 max-w-xl">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Image #{{ editTarget }}</p>
@@ -658,23 +569,19 @@ onMounted(() => {
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom de l'image</label>
             <input v-model="editForm.image_name" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Tag</label>
             <input v-model="editForm.image_tag" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Port interne</label>
             <input v-model.number="editForm.internal_port" type="number" min="1" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Limite de mémoire</label>
             <input v-model="editForm.memory_limit" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
         </div>
-
         <div class="flex gap-3 mt-6">
           <button @click="submitEdit" :disabled="editing" class="px-5 py-2 font-code text-xs tracking-wide bg-warning text-base-100 hover:bg-warning/80 transition-colors disabled:opacity-30">
             <span v-if="editing" class="loading loading-xs"></span>
@@ -684,8 +591,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- ── TAB : LISTE DES INSTANCES DOCKER ── -->
     <div v-if="activeTab === 'instance_list'" class="flex flex-col gap-4">
       <div class="flex justify-start">
         <button
@@ -695,8 +600,6 @@ onMounted(() => {
           <span>+ Lancer une instance manuellement</span>
         </button>
       </div>
-
-      <!-- Tableau des instances -->
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[1.5fr_1fr_2fr_2fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Utilisateur</div>
@@ -705,7 +608,6 @@ onMounted(() => {
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Création / Expiration</div>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingInstances" class="flex justify-center py-16">
             <span class="loading loading-spinner loading-md text-primary"></span>
@@ -740,16 +642,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
         <div class="border-t border-base-300 px-4 py-2 bg-base-200/50 flex items-center justify-between shrink-0">
           <span class="font-code text-[10px] text-base-content/30">{{ instances.length }} INSTANCE{{ instances.length > 1 ? 'S' : '' }} ACTIVE{{ instances.length > 1 ? 'S' : '' }}</span>
         </div>
       </div>
     </div>
-
   </div>
-
-  <!-- ── MODALE : LANCEMENT D'INSTANCE MANUEL ── -->
   <dialog :class="['modal', { 'modal-open': isLaunchModalOpen }]">
     <div class="modal-box bg-base-100 border border-base-300 rounded-none shadow-2xl p-6 max-w-lg">
       <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
@@ -759,9 +657,7 @@ onMounted(() => {
         </div>
         <button @click="isLaunchModalOpen = false" class="btn btn-sm btn-ghost font-code">✕</button>
       </div>
-
       <div class="flex flex-col gap-4 font-text text-xs">
-        <!-- Recherche interactive d'utilisateur -->
         <div class="flex flex-col gap-1 relative">
           <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Utilisateur *</label>
           <input
@@ -783,8 +679,6 @@ onMounted(() => {
             </div>
           </div>
         </div>
-
-        <!-- Recherche interactive de challenge -->
         <div class="flex flex-col gap-1 relative">
           <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Challenge *</label>
           <input
@@ -807,7 +701,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-
       <div class="modal-action mt-6 pt-4 border-t border-base-300 flex justify-end gap-2">
         <button @click="isLaunchModalOpen = false" class="btn btn-sm btn-ghost font-code text-xs">Annuler</button>
         <button
@@ -824,7 +717,6 @@ onMounted(() => {
       <button @click="isLaunchModalOpen = false">fermer</button>
     </form>
   </dialog>
-
   <PopUpConfirm
     :is-open="confirmModal.isOpen"
     :title="confirmModal.title"

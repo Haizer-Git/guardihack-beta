@@ -1,3 +1,115 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import PageTitle from '../../components/PageTitle.vue'
+
+const profile = ref({ username: '', is_private: false })
+const initialProfile = ref({ username: '', is_private: false })
+const isLoading = ref(false)
+const step = ref('request')
+const securityCode = ref('')
+const overlayError = ref('')
+const passphraseForm = ref({ new_passphrase: '', confirm_passphrase: '' })
+const toast = ref({ show: false, message: '', type: 'success' })
+let toastTimer = null
+const hasChanges = computed(() => {
+  return (
+    profile.value.username !== initialProfile.value.username ||
+    profile.value.is_private !== initialProfile.value.is_private
+  )
+})
+
+function showToast(message, type = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { show: true, message, type }
+  toastTimer = setTimeout(() => toast.value.show = false, 3000)
+}
+async function loadUserSettings() {
+  try {
+    const { data } = await axios.get('/api/auth/session')
+    const userData = data.session || data.user || data
+    if (userData) {
+      const uname = userData.username || ''
+      const isPriv = !!userData.is_private
+      console.log('Données utilisateur chargées :', userData)
+      profile.value.username = uname
+      profile.value.is_private = isPriv
+
+      initialProfile.value.username = uname
+      initialProfile.value.is_private = isPriv
+    }
+  } catch (e) { console.error(e) }
+}
+async function saveProfile() {
+  isLoading.value = true
+  const usernameChanged = profile.value.username !== initialProfile.value.username
+  const privacyChanged = profile.value.is_private !== initialProfile.value.is_private
+  try {
+    const requests = []
+    if (usernameChanged) {
+      requests.push(axios.post('/api/user/update/username', { new_username: profile.value.username }))
+    }
+    if (privacyChanged) {
+      requests.push(axios.post('/api/user/update/privacy', { new_privacy_mode: profile.value.is_private }))
+    }
+    if (requests.length > 0) {
+      await Promise.all(requests)
+      initialProfile.value.username = profile.value.username
+      initialProfile.value.is_private = profile.value.is_private
+      showToast("Profil mis à jour avec succès !")
+    }
+  } catch (e) {
+    showToast(e.response?.data?.message || "Erreur lors de la sauvegarde.", 'error')
+  } finally { 
+    isLoading.value = false 
+  }
+}
+async function requestSecurityCode() {
+  isLoading.value = true
+  overlayError.value = ''
+  try {
+    await axios.get('/api/user/update/passphrase/code')
+    step.value = 'verify'
+  } catch (e) {
+    showToast(e.response?.data?.message || "Impossible d'envoyer le code de sécurité.", 'error')
+  } finally { isLoading.value = false }
+}
+async function verifySecurityCode() {
+  if (securityCode.value.length !== 6) { overlayError.value = "Le code doit comporter 6 chiffres."; return }
+  isLoading.value = true
+  overlayError.value = ''
+  try {
+    const { status } = await axios.post('/api/user/update/passphrase/verify', { code: securityCode.value })
+    if (status === 200) step.value = 'reset'
+  } catch (e) {
+    overlayError.value = e.response?.data?.message || "Code invalide ou expiré."
+  } finally { isLoading.value = false }
+}
+async function submitNewpassphrase() {
+  if (!passphraseForm.value.new_passphrase || !passphraseForm.value.confirm_passphrase) return showToast("Veuillez remplir tous les champs.", 'error')
+  if (passphraseForm.value.new_passphrase !== passphraseForm.value.confirm_passphrase) return showToast("Les deux mots de passe ne correspondent pas.", 'error')
+  isLoading.value = true
+  try {
+    const response = await axios.post('/api/user/update/passphrase', {
+      code: securityCode.value,
+      new_passphrase: passphraseForm.value.new_passphrase
+    })
+    if (response.status === 200) {
+      alert("Mot de passe mis à jour avec succès !")
+      step.value = 'request'
+      securityCode.value = ''
+      passphraseForm.value.new_passphrase = ''
+      passphraseForm.value.confirm_passphrase = ''
+    }
+  } catch (error) {
+    alert(error.response?.data?.message || "Erreur lors de la mise à jour.")
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(loadUserSettings)
+</script>
 <template>
   <PageTitle text="Paramètre du profil" />
   <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0 translate-y-4"
@@ -9,7 +121,6 @@
       <span>{{ toast.message }}</span>
     </div>
   </Transition>
-
   <div class="text-base-content antialiased md:p-8">
     <div class="max-w-7xl mx-auto flex flex-col gap-10">
       <div class="bg-base-300 backdrop-blur-md border-[2px] border-base-200 p-6">
@@ -115,134 +226,9 @@
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
-import PageTitle from '../../components/PageTitle.vue'
-
-const profile = ref({ username: '', is_private: false })
-const initialProfile = ref({ username: '', is_private: false })
-
-const isLoading = ref(false)
-const step = ref('request')
-const securityCode = ref('')
-const overlayError = ref('')
-const passphraseForm = ref({ new_passphrase: '', confirm_passphrase: '' })
-const toast = ref({ show: false, message: '', type: 'success' })
-
-let toastTimer = null
-function showToast(message, type = 'success') {
-  if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { show: true, message, type }
-  toastTimer = setTimeout(() => toast.value.show = false, 3000)
-}
-
-const hasChanges = computed(() => {
-  return (
-    profile.value.username !== initialProfile.value.username ||
-    profile.value.is_private !== initialProfile.value.is_private
-  )
-})
-
-async function loadUserSettings() {
-  try {
-    const { data } = await axios.get('/api/auth/session')
-    const userData = data.session || data.user || data
-    if (userData) {
-      const uname = userData.username || ''
-      const isPriv = !!userData.is_private
-      console.log('Données utilisateur chargées :', userData)
-      profile.value.username = uname
-      profile.value.is_private = isPriv
-
-      initialProfile.value.username = uname
-      initialProfile.value.is_private = isPriv
-    }
-  } catch (e) { console.error(e) }
-}
-
-async function saveProfile() {
-  isLoading.value = true
-  
-  const usernameChanged = profile.value.username !== initialProfile.value.username
-  const privacyChanged = profile.value.is_private !== initialProfile.value.is_private
-
-  try {
-    const requests = []
-    if (usernameChanged) {
-      requests.push(axios.post('/api/user/update/username', { new_username: profile.value.username }))
-    }
-    if (privacyChanged) {
-      requests.push(axios.post('/api/user/update/privacy', { new_privacy_mode: profile.value.is_private }))
-    }
-    if (requests.length > 0) {
-      await Promise.all(requests)
-      initialProfile.value.username = profile.value.username
-      initialProfile.value.is_private = profile.value.is_private
-      showToast("Profil mis à jour avec succès !")
-    }
-  } catch (e) {
-    showToast(e.response?.data?.message || "Erreur lors de la sauvegarde.", 'error')
-  } finally { 
-    isLoading.value = false 
-  }
-}
-
-async function requestSecurityCode() {
-  isLoading.value = true
-  overlayError.value = ''
-  try {
-    await axios.get('/api/user/update/passphrase/code')
-    step.value = 'verify'
-  } catch (e) {
-    showToast(e.response?.data?.message || "Impossible d'envoyer le code de sécurité.", 'error')
-  } finally { isLoading.value = false }
-}
-
-async function verifySecurityCode() {
-  if (securityCode.value.length !== 6) { overlayError.value = "Le code doit comporter 6 chiffres."; return }
-  isLoading.value = true
-  overlayError.value = ''
-  try {
-    const { status } = await axios.post('/api/user/update/passphrase/verify', { code: securityCode.value })
-    if (status === 200) step.value = 'reset'
-  } catch (e) {
-    overlayError.value = e.response?.data?.message || "Code invalide ou expiré."
-  } finally { isLoading.value = false }
-}
-
-async function submitNewpassphrase() {
-  if (!passphraseForm.value.new_passphrase || !passphraseForm.value.confirm_passphrase) return showToast("Veuillez remplir tous les champs.", 'error')
-  if (passphraseForm.value.new_passphrase !== passphraseForm.value.confirm_passphrase) return showToast("Les deux mots de passe ne correspondent pas.", 'error')
-  isLoading.value = true
-  try {
-    const response = await axios.post('/api/user/update/passphrase', {
-      code: securityCode.value,
-      new_passphrase: passphraseForm.value.new_passphrase
-    })
-
-    if (response.status === 200) {
-      alert("Mot de passe mis à jour avec succès !")
-      step.value = 'request'
-      securityCode.value = ''
-      passphraseForm.value.new_passphrase = ''
-      passphraseForm.value.confirm_passphrase = ''
-    }
-  } catch (error) {
-    alert(error.response?.data?.message || "Erreur lors de la mise à jour.")
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(loadUserSettings)
-</script>

@@ -10,62 +10,37 @@ const props = defineProps({
     default: 'announcement',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS
-// ════════════════════════════════════════════════════════
 const globalNotifications  = ref([])
 const loadingGlobal        = ref(false)
 const expandedGlobal       = ref(null)
 const globalDetail         = ref(null)
 const globalReads          = ref([])
 const loadingReads         = ref(false)
-
-// Listes pour le ciblage (Utilisateurs et Presets)
 const allUsers             = ref([])
 const allPresets           = ref([])
 const loadingTargets       = ref(false)
-
-// Filtres et Tri (Liste annonces globales)
 const search         = ref('')
 const sortKey        = ref('created_at')
 const sortDir        = ref('desc')
-
 const currentPage    = ref(1)
-const itemsPerPage   = 25
-
-// Type d'annonce unifié dans le formulaire de création ('global' or 'targeted')
 const creationType   = ref('global')
-
-// Helper pour formater la date actuelle au format ISO (YYYY-MM-DDTHH:mm) pour l'input datetime-local
 const getCurrentLocalDateTime = () => {
   const now = new Date()
   const offset = now.getTimezoneOffset()
   const localDate = new Date(now.getTime() - (offset*60*1000))
   return localDate.toISOString().slice(0, 16)
 }
-
-// Formulaire : Création d'une annonce globale (Broadcast)
 const globalFormDefaults = { title: '', message: '', isPermanent: false, end_date: '' }
 const globalForm = reactive({ ...globalFormDefaults })
 const creatingGlobal = ref(false)
-
-// Formulaire : Création d'une notification ciblée (Personnelle)
 const targetedFormDefaults = { user_id: '', preset_id: '', title: '', message: '', target_type: 'user' }
 const targetedForm = reactive({ ...targetedFormDefaults })
 const creatingTargeted = ref(false)
-
-// Recherche interactive pour la notification ciblée par utilisateur
 const userSearchInput = ref('')
 const userDropdownOpen = ref(false)
 const userSuggestions = ref([])
-
-// ════════════════════════════════════════════════════════
-// 2. COMPUTED PROPERTIES
-// ════════════════════════════════════════════════════════
 const tabGroup = computed(() => TAB_GROUPS[props.initialTab] ?? TAB_GROUPS.announcement)
 const activeTab = ref('announcement_list')
-
 const filteredGlobalTable = computed(() => {
   if (!search.value.trim()) return globalNotifications.value
   const term = search.value.trim().toLowerCase()
@@ -73,37 +48,16 @@ const filteredGlobalTable = computed(() => {
     n.title.toLowerCase().includes(term) || n.message.toLowerCase().includes(term)
   )
 })
-
-// ════════════════════════════════════════════════════════
-// 3. CONFIGURATION DES ONGLETS & HELPERS UI
-// ════════════════════════════════════════════════════════
 const TAB_GROUPS = {
   announcement: [
     { id: 'announcement_list', label: 'Liste' },
     { id: 'announcement_create', label: 'Créer' },
   ]
 }
-
-function defaultTabForGroup(groupKey) {
-  return 'announcement_list'
-}
-
-function onTabChange(tab) {
-  activeTab.value = tab
-  if (tab === 'announcement_list') fetchGlobalNotifications()
-  if (tab === 'announcement_create') {
-    loadPresetsAndUsers()
-  }
-}
-
 const breadcrumbSubCategory = computed(() => {
   if (activeTab.value.includes('announcement')) return 'Communication'
   return 'Communication'
 })
-
-// ════════════════════════════════════════════════════════
-// 4. GESTION DES POPUPS DE CONFIRMATION
-// ════════════════════════════════════════════════════════
 const confirmModal = reactive({
   isOpen: false,
   title: '',
@@ -112,6 +66,16 @@ const confirmModal = reactive({
   onConfirm: null
 })
 
+function defaultTabForGroup(groupKey) {
+  return 'announcement_list'
+}
+function onTabChange(tab) {
+  activeTab.value = tab
+  if (tab === 'announcement_list') fetchGlobalNotifications()
+  if (tab === 'announcement_create') {
+    loadPresetsAndUsers()
+  }
+}
 function triggerConfirm(title, message, callback) {
   confirmModal.title = title
   confirmModal.message = message
@@ -119,7 +83,6 @@ function triggerConfirm(title, message, callback) {
   confirmModal.onConfirm = callback
   confirmModal.isOpen = true
 }
-
 async function handleConfirmDialog() {
   if (confirmModal.onConfirm) {
     confirmModal.loading = true
@@ -135,16 +98,11 @@ async function handleConfirmDialog() {
     closeConfirmDialog()
   }
 }
-
 function closeConfirmDialog() {
   confirmModal.isOpen = false
   confirmModal.loading = false
   confirmModal.onConfirm = null
 }
-
-// ════════════════════════════════════════════════════════
-// 5. FONCTIONS API & RECHERCHE DYNAMIQUE
-// ════════════════════════════════════════════════════════
 async function fetchGlobalNotifications() {
   loadingGlobal.value = true
   try {
@@ -156,7 +114,6 @@ async function fetchGlobalNotifications() {
     loadingGlobal.value = false
   }
 }
-
 async function loadPresetsAndUsers() {
   try {
     const [pr, ur] = await Promise.all([
@@ -169,30 +126,11 @@ async function loadPresetsAndUsers() {
     showToast('Erreur lors du chargement des cibles', 'error')
   }
 }
-
-// Recherche dynamique des utilisateurs pour les notifs ciblées
-watch(userSearchInput, async (newVal) => {
-  if (!newVal || newVal.trim().length === 0) {
-    userSuggestions.value = []
-    return
-  }
-  try {
-    const res = await axios.get('/api/admin/user/list', {
-      params: { search: newVal.trim(), limit: 10 }
-    })
-    userSuggestions.value = res.data?.users ?? []
-    userDropdownOpen.value = true
-  } catch {
-    userSuggestions.value = []
-  }
-})
-
 function selectUserForTarget(u) {
   targetedForm.user_id = u.id
   userSearchInput.value = u.username
   userDropdownOpen.value = false
 }
-
 async function toggleGlobalNotification(id) {
   if (expandedGlobal.value === id) {
     expandedGlobal.value = null
@@ -212,7 +150,6 @@ async function toggleGlobalNotification(id) {
     loadingReads.value = false
   }
 }
-
 async function deleteGlobalNotification(id, title) {
   triggerConfirm(
     'Supprimer l\'annonce globale',
@@ -233,35 +170,26 @@ async function deleteGlobalNotification(id, title) {
     }
   )
 }
-
-// ════════════════════════════════════════════════════════
-// 6. SOUMISSION DES FORMULAIRES (Création Annonce & Notification)
-// ════════════════════════════════════════════════════════
 async function submitCreateGlobal() {
   if (!globalForm.title.trim() || !globalForm.message.trim()) {
     showToast('Le titre et le message sont requis', 'error')
     return
   }
-  
-  // NOUVELLE VÉRIFICATION : Bloque si non permanent et pas de date de fin
   if (!globalForm.isPermanent && !globalForm.end_date) {
     showToast('Veuillez définir une date de fin, ou cochez "Diffusion permanente".', 'error')
     return
   }
-
   creatingGlobal.value = true
   try {
     const now = new Date()
     const pad = (n) => String(n).padStart(2, '0')
     const currentDebut = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-
     const payload = {
       title: globalForm.title.trim(),
       message: globalForm.message.trim(),
       debut: currentDebut,
       end: globalForm.isPermanent ? null : globalForm.end_date.replace('T', ' ') + ':00'
     }
-
     await axios.post('/api/admin/notification/global/create', payload)
     showToast('Annonce globale diffusée avec succès !')
     Object.assign(globalForm, { ...globalFormDefaults })
@@ -273,7 +201,6 @@ async function submitCreateGlobal() {
     creatingGlobal.value = false
   }
 }
-
 async function submitCreateTargeted() {
   if (!targetedForm.title.trim() || !targetedForm.message.trim()) {
     showToast('Le titre et le message sont requis', 'error')
@@ -287,7 +214,6 @@ async function submitCreateTargeted() {
     showToast('Veuillez sélectionner un preset / groupe cible', 'error')
     return
   }
-
   creatingTargeted.value = true
   try {
     let endpoint = ''
@@ -295,7 +221,6 @@ async function submitCreateTargeted() {
       title: targetedForm.title.trim(),
       message: targetedForm.message.trim()
     }
-
     if (targetedForm.target_type === 'user') {
       payload.user_id = Number(targetedForm.user_id)
       endpoint = '/api/admin/notification/create'
@@ -303,11 +228,8 @@ async function submitCreateTargeted() {
       payload.preset_id = Number(targetedForm.preset_id)
       endpoint = '/api/admin/notification/preset/send'
     }
-
     const res = await axios.post(endpoint, payload)
     showToast(res.data?.message || 'Notification ciblée envoyée avec succès !')
-    
-    // Reset
     Object.assign(targetedForm, { ...targetedFormDefaults })
     userSearchInput.value = ''
     activeTab.value = 'announcement_list'
@@ -317,7 +239,6 @@ async function submitCreateTargeted() {
     creatingTargeted.value = false
   }
 }
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -332,12 +253,26 @@ function setSort(key) {
     return 0
   })
 }
-
 function clearFilters() {
   search.value = ''
   currentPage.value = 1
 }
 
+watch(userSearchInput, async (newVal) => {
+  if (!newVal || newVal.trim().length === 0) {
+    userSuggestions.value = []
+    return
+  }
+  try {
+    const res = await axios.get('/api/admin/user/list', {
+      params: { search: newVal.trim(), limit: 10 }
+    })
+    userSuggestions.value = res.data?.users ?? []
+    userDropdownOpen.value = true
+  } catch {
+    userSuggestions.value = []
+  }
+})
 watch(
   () => props.initialTab,
   async (groupKey) => {
@@ -354,7 +289,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-    <!-- Titre Principal -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > {{ breadcrumbSubCategory }}</p>
@@ -362,8 +296,6 @@ onMounted(() => {
       </div>
       <span v-if="activeTab === 'announcement_list'" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ globalNotifications.length }} ANNONCE{{ globalNotifications.length > 1 ? 'S' : '' }}</span>
     </div>
-
-    <!-- Barre d'onglets -->
     <div class="flex gap-0 border-b border-primary mb-6">
       <button
         v-for="tab in tabGroup"
@@ -380,8 +312,6 @@ onMounted(() => {
         ]"
       >{{ tab.label }}</button>
     </div>
-
-    <!-- ── TAB : LISTE DES ANNONCES GLOBALES ── -->
     <div v-if="activeTab === 'announcement_list'" class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
         <button
@@ -391,8 +321,6 @@ onMounted(() => {
           <span>+ Créer une nouvelle annonce</span>
         </button>
       </div>
-
-      <!-- Filtres et recherche -->
       <div class="flex items-center gap-2 flex-wrap mb-2">
         <div class="relative flex-1 min-w-48">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -404,8 +332,6 @@ onMounted(() => {
           />
         </div>
       </div>
-
-      <!-- Tableau -->
       <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
         <div class="grid grid-cols-[2fr_2.5fr_1fr_1.2fr_1.2fr_1.2fr_120px] bg-base-200 border-b border-base-300 shrink-0">
           <button
@@ -426,7 +352,6 @@ onMounted(() => {
           </button>
           <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
         </div>
-
         <div class="flex-1 overflow-y-auto">
           <div v-if="loadingGlobal" class="flex justify-center py-16">
             <span class="loading loading-spinner loading-md text-primary"></span>
@@ -443,12 +368,10 @@ onMounted(() => {
                   expandedGlobal === notif.id ? 'bg-primary/8 border-l-2 border-l-primary' : 'hover:bg-base-300/30'
                 ]"
               >
-                <!-- Titre -->
                 <div class="px-4 py-3 flex items-center gap-2 min-w-0">
                   <span class="font-code text-[10px] text-base-content/30 shrink-0">#{{ notif.id }}</span>
                   <span class="font-code text-xs text-base-content font-medium truncate">{{ notif.title }}</span>
                 </div>
-                <!-- Message -->
                 <div class="px-4 py-3 flex items-center min-w-0">
                   <span class="font-code text-xs text-base-content/70 truncate">{{ notif.message }}</span>
                 </div>
@@ -458,25 +381,19 @@ onMounted(() => {
                     {{ notif.end ? 'Temporaire' : 'Permanent' }}
                   </span>
                 </div>
-                <!-- Début -->
                 <div class="px-4 py-3 flex items-center">
                   <span class="font-code text-[11px] text-base-content/60">{{ notif.debut ?? '—' }}</span>
                 </div>
-                <!-- Fin -->
                 <div class="px-4 py-3 flex items-center">
                   <span class="font-code text-[11px] text-base-content/60">{{ notif.end ?? '-' }}</span>
                 </div>
-                <!-- Date d'envoi -->
                 <div class="px-4 py-3 flex items-center">
                   <span class="font-code text-[11px] text-base-content/60">{{ notif.created_at ?? '—' }}</span>
                 </div>
-                <!-- Actions -->
                 <div class="px-4 py-3 flex items-center justify-end gap-1.5" @click.stop>
                   <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteGlobalNotification(notif.id, notif.title)" title="Supprimer">Supprimer</button>
                 </div>
               </div>
-
-              <!-- Accordéon de suivi de lecture -->
               <div v-if="expandedGlobal === notif.id" class="border-b border-base-300 bg-base-300/50 p-5">
                 <p class="font-stitre text-[12px] tracking-widest uppercase text-primary/70 mb-3">Suivi de lecture des utilisateurs</p>
                 <div v-if="loadingReads" class="flex justify-center py-6">
@@ -493,7 +410,6 @@ onMounted(() => {
             </template>
           </div>
         </div>
-
         <div class="border-t border-base-300 px-4 py-2 bg-base-200/50 flex items-center justify-between shrink-0">
           <span class="font-code text-[10px] text-base-content/30">{{ filteredGlobalTable.length }} / {{ globalNotifications.length }} ANNONCE{{ filteredGlobalTable.length > 1 ? 'S' : '' }}</span>
           <span
@@ -504,17 +420,12 @@ onMounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- ── TAB : CRÉATION D'UNE ANnonce (GLOBALE OU CIBLÉE AVEC INTERRUPTEUR) ── -->
     <div v-if="activeTab === 'announcement_create'" class="w-full">
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-        <!-- Formulaire de rédaction dynamique -->
         <div class="border border-base-300 bg-base-200/40 p-6">
           <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Nouveau message</p>
           <h2 class="font-titre font-bold text-lg text-base-content mb-6">Créer une nouvelle annonce</h2>
-          
           <div class="flex flex-col gap-4">
-            <!-- Interrupteur pour choisir le type d'annonce -->
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Portée de l'annonce</label>
               <div class="grid grid-cols-2 gap-2">
@@ -540,8 +451,6 @@ onMounted(() => {
                 </button>
               </div>
             </div>
-
-            <!-- CHAMPS SPÉCIFIQUES : NOTIFICATION CIBLÉE -->
             <template v-if="creationType === 'targeted'">
               <div class="flex flex-col gap-1">
                 <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type de destinataire</label>
@@ -550,8 +459,6 @@ onMounted(() => {
                   <option value="preset">Groupe / Preset (Ex: Campus)</option>
                 </select>
               </div>
-
-              <!-- Sélection Utilisateur Unique (Recherche interactive) -->
               <div v-if="targetedForm.target_type === 'user'" class="flex flex-col gap-1 relative">
                 <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Utilisateur cible *</label>
                 <input
@@ -573,8 +480,6 @@ onMounted(() => {
                   </div>
                 </div>
               </div>
-
-              <!-- Sélection Preset / Groupe -->
               <div v-if="targetedForm.target_type === 'preset'" class="flex flex-col gap-1">
                 <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Preset / Groupe cible *</label>
                 <select v-model="targetedForm.preset_id" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -583,11 +488,8 @@ onMounted(() => {
                 </select>
               </div>
             </template>
-
-            <!-- CHAMPS SPÉCIFIQUES : ANNONCE GLOBALE (Gestion des dates Debut / Fin) -->
             <template v-if="creationType === 'global'">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Date de début (Fixée à l'heure actuelle, non modifiable, avec tooltip) -->
                 <div class="flex flex-col gap-1">
                   <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Début de diffusion</label>
                   <input 
@@ -598,8 +500,6 @@ onMounted(() => {
                     class="bg-base-100/50 border border-base-300/60 opacity-70 outline-none px-3 py-2 font-code text-sm text-base-content cursor-not-allowed" 
                   />
                 </div>
-
-                <!-- Date de fin (Désactivée si "Diffusion permanente" est cochée) -->
                 <div class="flex flex-col gap-1">
                   <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Fin de diffusion</label>
                   <input 
@@ -611,8 +511,6 @@ onMounted(() => {
                   />
                 </div>
               </div>
-
-              <!-- Case à cocher : Diffusion permanente -->
               <div class="border border-base-300/60 bg-base-100/30 p-2.5">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input v-model="globalForm.isPermanent" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
@@ -620,8 +518,6 @@ onMounted(() => {
                 </label>
               </div>
             </template>
-
-            <!-- CHAMPS COMMUNS (Titre & Message) -->
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Titre *</label>
               <input 
@@ -632,7 +528,6 @@ onMounted(() => {
                 class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors" 
               />
             </div>
-
             <div class="flex flex-col gap-1">
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Message *</label>
               <textarea 
@@ -644,8 +539,6 @@ onMounted(() => {
               ></textarea>
             </div>
           </div>
-
-          <!-- Boutons d'action conditionnels -->
           <div class="flex gap-3 mt-6">
             <button 
                 v-if="creationType === 'global'"
@@ -656,7 +549,6 @@ onMounted(() => {
                 <span v-if="creatingGlobal" class="loading loading-xs"></span>
                 <span>Diffuser l'annonce globale</span>
             </button>
-
             <button 
               v-else
               @click="submitCreateTargeted" 
@@ -666,12 +558,9 @@ onMounted(() => {
               <span v-if="creatingTargeted" class="loading loading-xs"></span>
               <span>Envoyer la notification ciblée</span>
             </button>
-
             <button @click="activeTab = 'announcement_list'" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content hover:border-base-content/30 transition-colors">Annuler</button>
           </div>
         </div>
-
-        <!-- Aperçu en direct dynamique -->
         <div class="sticky top-6 border border-primary/30 bg-base-100/80 p-6 shadow-2xl backdrop-blur-md">
           <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-6">
             <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">

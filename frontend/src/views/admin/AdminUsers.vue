@@ -10,15 +10,9 @@ const props = defineProps({
     default: 'user',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS
-// ════════════════════════════════════════════════════════
 const users          = ref([])
 const totalUsers     = ref(0)
 const loadingUsers   = ref(false)
-
-// Filtres et Tri (Liste utilisateurs)
 const search         = ref('')
 const filterRole     = ref('')
 const filterCity     = ref('')
@@ -26,26 +20,15 @@ const filterConnected = ref(true)
 const filterStatus    = ref('')
 const sortKey        = ref('id')
 const sortDir        = ref('desc')
-
 const currentPage    = ref(1)
 const itemsPerPage   = 25
-
-// ════════════════════════════════════════════════════════
-// 2. COMPUTED PROPERTIES
-// ════════════════════════════════════════════════════════
 const tabGroup = computed(() => TAB_GROUPS[props.initialTab] ?? TAB_GROUPS.user)
 const activeTab = ref('users_list')
-
 const filteredUsers = computed(() => users.value)
-
 const availableCities = computed(() => {
   const set = new Set(users.value.map(u => u.affiliation).filter(Boolean))
   return [...set].sort()
 })
-
-// ════════════════════════════════════════════════════════
-// 3. CONFIGURATION DES ONGLETS & HELPERS UI
-// ════════════════════════════════════════════════════════
 const TAB_GROUPS = {
   user: [
     { id: 'users_list', label: 'Liste' },
@@ -60,7 +43,6 @@ const TAB_GROUPS = {
     { id: 'users_tokens_auto', label: 'Automatisation' },
   ],
 }
-
 const USER_TYPE_MAP = {
   ADMIN: 'bg-error/15 text-error border-error/30',
   PEDAGOGIE: 'bg-warning/15 text-warning border-warning/30',
@@ -68,35 +50,98 @@ const USER_TYPE_MAP = {
   INVITE: 'bg-secondary/15 text-secondary border border-secondary/30',
   EXTERNE: 'bg-base-300 text-base-content/70 border-base-300'
 }
-
 const userTypeClass = (type) => {
   const upper = (type || '').toUpperCase()
   return USER_TYPE_MAP[upper] ?? 'bg-base-300 text-base-content/70 border-base-300'
 }
-
-function defaultTabForGroup(groupKey) {
-  if (groupKey === 'preset') return 'users_presets_list'
-  if (groupKey === 'token') return 'users_tokens_list'
-  return 'users_list'
-}
-
-function onTabChange(tab) {
-  activeTab.value = tab
-  if (tab === 'users_list') fetchUsers()
-  if (tab.startsWith('users_presets_')) loadPresetsAndTokens()
-  if (tab.startsWith('users_tokens_')) loadPresetsAndTokens()
-}
-
 const breadcrumbSubCategory = computed(() => {
   if (activeTab.value.startsWith('users_') && !activeTab.value.startsWith('users_presets') && !activeTab.value.startsWith('users_tokens')) return 'Utilisateurs'
   if (activeTab.value.startsWith('users_presets')) return 'Presets'
   if (activeTab.value.startsWith('users_tokens')) return 'Tokens'
   return ''
 })
+const totalPages = computed(() => {
+  return Math.ceil(totalUsers.value / itemsPerPage) || 1
+})
+const selectedUser     = ref(null)
+const loadingUserInfo  = ref(false)
+const detailedUserInfo = ref(null)
+const statusModalOpen  = ref(false)
+const targetUserForStatus = ref(null)
+const statusForm       = reactive({ new_status: 'ACTIVE', reason: '', ended_at: '' })
+const updatingStatus   = ref(false)
+const userBadgesModalOpen = ref(false)
+const userCosmeticsModalOpen = ref(false)
+const userStatusHistoryModalOpen = ref(false)
+const userSubmissionsModalOpen = ref(false)
+const exportingUserBadges = ref(false)
+const exportingUserCosmetics = ref(false)
+const exportingUserStatusHistory = ref(false)
+const exportingUserSubmissions = ref(false)
+const userAchievementsModalOpen = ref(false)
+const exportingUserAchievements = ref(false)
+const autoTokenPreset = ref('')
+const selectedCsvFile = ref(null)
+const autoSendEmail = ref(true)
+const uploadingAutoTokens = ref(false)
+const allPresets          = ref([])
+const allTokens           = ref([])
+const loadingPresets      = ref(false)
+const newPresetForm       = reactive({ name: '', type: 'USER', affiliation: 'PARIS'})
+const creatingPreset      = ref(false)
+const expandedPreset      = ref(null)
+const expandedTokenPreset = ref(null)
+const presetUsersPanelOpen = ref(false)
+const selectedPresetObj    = ref(null)
+const presetUsersList      = ref([])
+const loadingPresetUsers   = ref(false)
+const exportingPresetUsers = ref(false)
+const presetTokensModalOpen = ref(false)
+const selectedPresetForTokens = ref(null)
+const modalTokensList        = ref([])
+const loadingModalTokens     = ref(false)
+const exportingModalTokens   = ref(false)
+const tokensGroupedByPreset = computed(() => {
+  const map = {}
+  allTokens.value.forEach(token => {
+    const pId = token.preset_id
+    if (!map[pId]) {
+      const presetInfo = allPresets.value.find(p => p.id === pId) || { name: `Preset #${pId}` }
+      map[pId] = { presetId: pId, presetName: presetInfo.name, tokens: [] }
+    }
+    map[pId].tokens.push(token)
+  })
+  return Object.values(map)
+})
+const newTokenPreset      = ref('')
+const newTokenMaxUses     = ref(1)
+const newTokenExpiresAt   = ref('')
+const creatingToken       = ref(false)
+const enableEmail       = ref(false)
+const enableName        = ref(false)
+const enableClasse     = ref(false)
+const enableExpiration  = ref(false)
+const newTokenMail      = ref('')
+const newTokenFirstName = ref('')
+const newTokenLastName  = ref('')
+const newTokenClasse    = ref('')
+const newTokenNiveau    = ref('')
+const selectedPresetData = computed(() => {
+  if (!newTokenPreset.value) return null
+  return allPresets.value.find(p => p.id === Number(newTokenPreset.value)) || null
+})
 
-// ════════════════════════════════════════════════════════
-// 4. FONCTIONS API (Utilisateurs & Infos administratives)
-// ════════════════════════════════════════════════════════
+function defaultTabForGroup(groupKey) {
+  if (groupKey === 'preset') return 'users_presets_list'
+  if (groupKey === 'token') return 'users_tokens_list'
+  return 'users_list'
+}
+function onTabChange(tab) {
+  activeTab.value = tab
+  if (tab === 'users_list') fetchUsers()
+  if (tab.startsWith('users_presets_')) loadPresetsAndTokens()
+  if (tab.startsWith('users_tokens_')) loadPresetsAndTokens()
+}
 async function fetchUsers() {
   loadingUsers.value = true
   try {
@@ -121,18 +166,6 @@ async function fetchUsers() {
     loadingUsers.value = false
   }
 }
-
-watch(
-  [search, filterRole, filterCity, sortKey, sortDir, currentPage, filterStatus, filterConnected],
-  () => {
-    fetchUsers()
-  }
-)
-
-watch([search, filterRole, filterCity, filterStatus, filterConnected], () => {
-  currentPage.value = 1
-})
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -141,7 +174,6 @@ function setSort(key) {
     sortDir.value = 'asc'
   }
 }
-
 function clearFilters() {
   search.value          = ''
   filterRole.value      = ''
@@ -150,43 +182,21 @@ function clearFilters() {
   filterConnected.value = false
   currentPage.value     = 1
 }
-
-const totalPages = computed(() => {
-  return Math.ceil(totalUsers.value / itemsPerPage) || 1
-})
-
 function nextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++
   }
 }
-
 function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--
   }
 }
-
 function goToPage(page) {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
   }
 }
-
-
-// ════════════════════════════════════════════════════════
-// 5. PANNEAU DÉTAIL & MODALE DE STATUT (SANCTIONS)
-// ════════════════════════════════════════════════════════
-const selectedUser     = ref(null)
-const loadingUserInfo  = ref(false)
-const detailedUserInfo = ref(null)
-
-// Modale de modification de statut
-const statusModalOpen  = ref(false)
-const targetUserForStatus = ref(null)
-const statusForm       = reactive({ new_status: 'ACTIVE', reason: '', ended_at: '' })
-const updatingStatus   = ref(false)
-
 async function openUser(user) {
   if (selectedUser.value?.id === user.id) {
     closePanel()
@@ -195,7 +205,6 @@ async function openUser(user) {
   selectedUser.value = user
   detailedUserInfo.value = null
   loadingUserInfo.value = true
-
   try {
     const res = await axios.get(`/api/admin/user/${user.id}/info`)
     detailedUserInfo.value = res.data?.user ?? null
@@ -205,12 +214,10 @@ async function openUser(user) {
     loadingUserInfo.value = false
   }
 }
-
 function closePanel() {
   selectedUser.value = null
   detailedUserInfo.value = null
 }
-
 function openStatusModal(user) {
   targetUserForStatus.value = user
   statusForm.new_status = user.status ?? 'ACTIVE'
@@ -218,14 +225,12 @@ function openStatusModal(user) {
   statusForm.ended_at = ''
   statusModalOpen.value = true
 }
-
 async function submitStatusUpdate() {
   if (!targetUserForStatus.value) return
   if (['BANNED', 'LOCKED'].includes(statusForm.new_status) && !statusForm.reason.trim()) {
     showToast('Une raison est requise pour le bannissement ou le verrouillage', 'error')
     return
   }
-
   updatingStatus.value = true
   try {
     const payload = {
@@ -233,10 +238,8 @@ async function submitStatusUpdate() {
       reason: statusForm.reason.trim() || null,
       ended_at: statusForm.ended_at ? statusForm.ended_at.replace('T', ' ') + ':00' : null
     }
-
     const res = await axios.post(`/api/admin/user/${targetUserForStatus.value.id}/status/update`, payload)
     showToast(res.data?.message || 'Statut mis à jour avec succès')
-    
     statusModalOpen.value = false
     await fetchUsers()
     if (selectedUser.value?.id === targetUserForStatus.value.id) {
@@ -248,22 +251,6 @@ async function submitStatusUpdate() {
     updatingStatus.value = false
   }
 }
-// ════════════════════════════════════════════════════════
-// GESTION DES MODALES DÉTAILLÉES UTILISATEUR & EXPORTS CSV
-// ════════════════════════════════════════════════════════
-const userBadgesModalOpen = ref(false)
-const userCosmeticsModalOpen = ref(false)
-const userStatusHistoryModalOpen = ref(false)
-const userSubmissionsModalOpen = ref(false)
-
-const exportingUserBadges = ref(false)
-const exportingUserCosmetics = ref(false)
-const exportingUserStatusHistory = ref(false)
-const exportingUserSubmissions = ref(false)
-const userAchievementsModalOpen = ref(false)
-const exportingUserAchievements = ref(false)
-
-// Fonction d'export générique CSV
 function exportToCsv(filename, headers, rowsData) {
   if (!rowsData.length) return
   const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
@@ -282,7 +269,6 @@ function exportToCsv(filename, headers, rowsData) {
   a.click()
   URL.revokeObjectURL(url)
 }
-
 function downloadUserBadgesCsv() {
   exportingUserBadges.value = true
   try {
@@ -294,7 +280,6 @@ function downloadUserBadgesCsv() {
     exportingUserBadges.value = false
   }
 }
-
 function downloadUserCosmeticsCsv() {
   exportingUserCosmetics.value = true
   try {
@@ -306,7 +291,6 @@ function downloadUserCosmeticsCsv() {
     exportingUserCosmetics.value = false
   }
 }
-
 function downloadUserStatusHistoryCsv() {
   exportingUserStatusHistory.value = true
   try {
@@ -318,7 +302,6 @@ function downloadUserStatusHistoryCsv() {
     exportingUserStatusHistory.value = false
   }
 }
-
 function downloadUserSubmissionsCsv() {
   exportingUserSubmissions.value = true
   try {
@@ -341,20 +324,10 @@ function downloadUserAchievementsCsv() {
     exportingUserAchievements.value = false
   }
 }
-
-// ════════════════════════════════════════════════════════
-// AUTOMATISATION CSV TOKENS
-// ════════════════════════════════════════════════════════
-const autoTokenPreset = ref('')
-const selectedCsvFile = ref(null)
-const autoSendEmail = ref(true)
-const uploadingAutoTokens = ref(false)
-
 function handleCsvFileSelect(event) {
   const file = event.target.files[0]
   selectedCsvFile.value = file || null
 }
-
 async function submitAutoCreateTokens() {
   if (!autoTokenPreset.value || !selectedCsvFile.value) {
     showToast('Veuillez sélectionner un preset et un fichier CSV', 'error')
@@ -363,7 +336,6 @@ async function submitAutoCreateTokens() {
   uploadingAutoTokens.value = true
   const formData = new FormData()
   formData.append('file', selectedCsvFile.value)
-
   try {
     const res = await axios.post(`/api/admin/token/create/auto/${autoTokenPreset.value}/${autoSendEmail.value}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -385,30 +357,6 @@ async function submitAutoCreateTokens() {
     uploadingAutoTokens.value = false
   }
 }
-
-// ════════════════════════════════════════════════════════
-// PRESETS & TOKENS (LOGIQUE D'ORIGINE)
-// ════════════════════════════════════════════════════════
-const allPresets          = ref([])
-const allTokens           = ref([])
-const loadingPresets      = ref(false)
-const newPresetForm       = reactive({ name: '', type: 'USER', affiliation: 'PARIS'})
-const creatingPreset      = ref(false)
-const expandedPreset      = ref(null)
-const expandedTokenPreset = ref(null)
-
-const presetUsersPanelOpen = ref(false)
-const selectedPresetObj    = ref(null)
-const presetUsersList      = ref([])
-const loadingPresetUsers   = ref(false)
-const exportingPresetUsers = ref(false)
-
-const presetTokensModalOpen = ref(false)
-const selectedPresetForTokens = ref(null)
-const modalTokensList        = ref([])
-const loadingModalTokens     = ref(false)
-const exportingModalTokens   = ref(false)
-
 async function loadPresetsAndTokens() {
   if (allPresets.value.length && allTokens.value.length) return
   loadingPresets.value = true
@@ -418,28 +366,12 @@ async function loadPresetsAndTokens() {
     allTokens.value  = tr.data?.tokens  ?? tr.data?.data  ?? []
   } catch {} finally { loadingPresets.value = false }
 }
-
-const tokensGroupedByPreset = computed(() => {
-  const map = {}
-  allTokens.value.forEach(token => {
-    const pId = token.preset_id
-    if (!map[pId]) {
-      const presetInfo = allPresets.value.find(p => p.id === pId) || { name: `Preset #${pId}` }
-      map[pId] = { presetId: pId, presetName: presetInfo.name, tokens: [] }
-    }
-    map[pId].tokens.push(token)
-  })
-  return Object.values(map)
-})
-
 function toggleTokenPreset(presetId) {
   expandedTokenPreset.value = expandedTokenPreset.value === presetId ? null : presetId
 }
-
 function togglePreset(id) {
   expandedPreset.value = expandedPreset.value === id ? null : id
 }
-
 async function fetchPresetUsers(preset) {
   selectedPresetObj.value = preset
   presetUsersPanelOpen.value = true
@@ -454,7 +386,6 @@ async function fetchPresetUsers(preset) {
     loadingPresetUsers.value = false
   }
 }
-
 async function downloadPresetUsersCsv() {
   if (!presetUsersList.value.length || !selectedPresetObj.value) return
   exportingPresetUsers.value = true
@@ -482,7 +413,6 @@ async function downloadPresetUsersCsv() {
     exportingPresetUsers.value = false
   }
 }
-
 async function createPreset() {
   if (!newPresetForm.name.trim() || !newPresetForm.affiliation.trim()) {
     showToast('Le nom et l\'affiliation sont requis', 'error')
@@ -506,7 +436,6 @@ async function createPreset() {
     creatingPreset.value = false 
   }
 }
-
 async function deletePreset(presetId) {
   try {
     await axios.post(`/api/admin/preset/${presetId}/delete`)
@@ -515,13 +444,11 @@ async function deletePreset(presetId) {
     await loadPresetsAndTokens()
   } catch (e) { showToast(e.response?.data?.message ?? 'Erreur', 'error') }
 }
-
 function openPresetTokensModal(group) {
   selectedPresetForTokens.value = group
   modalTokensList.value = group.tokens
   presetTokensModalOpen.value = true
 }
-
 async function downloadModalTokensCsv() {
   if (!modalTokensList.value.length || !selectedPresetForTokens.value) return
   exportingModalTokens.value = true
@@ -549,26 +476,6 @@ async function downloadModalTokensCsv() {
     exportingModalTokens.value = false
   }
 }
-
-const newTokenPreset      = ref('')
-const newTokenMaxUses     = ref(1)
-const newTokenExpiresAt   = ref('')
-const creatingToken       = ref(false)
-const enableEmail       = ref(false)
-const enableName        = ref(false)
-const enableClasse     = ref(false)
-const enableExpiration  = ref(false)
-const newTokenMail      = ref('')
-const newTokenFirstName = ref('')
-const newTokenLastName  = ref('')
-const newTokenClasse    = ref('')
-const newTokenNiveau    = ref('')
-
-const selectedPresetData = computed(() => {
-  if (!newTokenPreset.value) return null
-  return allPresets.value.find(p => p.id === Number(newTokenPreset.value)) || null
-})
-
 async function createToken() {
   if (!newTokenPreset.value) return
   creatingToken.value = true
@@ -585,7 +492,6 @@ async function createToken() {
       if (newTokenNiveau.value.trim()) payload.niveau = newTokenNiveau.value.trim()
     }
     if (enableExpiration.value && newTokenExpiresAt.value) payload.expires_at = newTokenExpiresAt.value
-
     await axios.post('/api/admin/token/create', payload)
     showToast('Token créé avec succès !')
     newTokenPreset.value = ''
@@ -609,7 +515,6 @@ async function createToken() {
     creatingToken.value = false 
   }
 }
-
 async function deleteToken(tokenId) {
   try {
     await axios.post(`/api/admin/token/${tokenId}/delete`)
@@ -618,7 +523,6 @@ async function deleteToken(tokenId) {
     await loadPresetsAndTokens()
   } catch (e) { showToast(e.response?.data?.message ?? 'Erreur', 'error') }
 }
-
 async function notifyToken(tokenId) {
   try {
     await axios.post(`/api/admin/token/${tokenId}/notify`)
@@ -628,6 +532,15 @@ async function notifyToken(tokenId) {
   }
 }
 
+watch(
+  [search, filterRole, filterCity, sortKey, sortDir, currentPage, filterStatus, filterConnected],
+  () => {
+    fetchUsers()
+  }
+)
+watch([search, filterRole, filterCity, filterStatus, filterConnected], () => {
+  currentPage.value = 1
+})
 watch(
   () => props.initialTab,
   async (groupKey) => {
@@ -651,8 +564,6 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col h-full">
-
-    <!-- En-tête dynamique -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > Utilisateurs > {{ breadcrumbSubCategory }}</p>
@@ -660,8 +571,6 @@ onMounted(() => {
       </div>
       <span v-if="activeTab === 'users_list'" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ totalUsers }} UTILISATEUR{{ totalUsers > 1 ? 'S' : '' }}</span>
     </div>
-
-    <!-- Barre d'onglets -->
     <div class="flex gap-0 border-b border-primary mb-6">
       <button
         v-for="tab in tabGroup"
@@ -675,11 +584,7 @@ onMounted(() => {
         ]"
       >{{ tab.label }}</button>
     </div>
-
-    <!-- Contenu conditionnel -->
     <div class="flex gap-6 flex-1 min-h-0">
-
-      <!-- ── SOUS-SECTION : UTILISATEURS ── -->
       <div v-if="activeTab === 'users_list'" class="flex flex-col min-w-0 w-full">
         <div class="flex flex-col gap-3 mb-4">
           <div class="flex items-center gap-2 flex-wrap">
@@ -720,14 +625,12 @@ onMounted(() => {
               <option value="LOCKED">Verrouillé</option>
               <option value="BANNED">Suspendu</option>
             </select>
-
             <label class="flex items-center gap-2 px-3 py-2 bg-base-100 border border-base-300 cursor-pointer select-none">
               <input v-model="filterConnected" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
               <span class="font-code text-xs text-base-content">Connecté</span>
             </label>
           </div>
         </div>
-
         <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
           <div class="flex-1 overflow-y-auto">
             <div class="grid grid-cols-[1.5fr_1.5fr_1.5fr_2.5fr_1fr_1fr_1.2fr_1.2fr_1fr_100px] bg-base-200 border-b border-base-300 sticky top-0 z-10 font-code text-[10px] uppercase tracking-widest text-base-content/40">
@@ -741,7 +644,6 @@ onMounted(() => {
               <div class="px-3 py-2.5">Connecté</div>
               <div class="px-3 py-2.5 text-right">Actions</div>
             </div>
-
             <div v-if="loadingUsers" class="flex justify-center py-16">
               <span class="loading loading-spinner loading-md text-primary"></span>
             </div>
@@ -783,28 +685,21 @@ onMounted(() => {
                     <button @click="openStatusModal(user)" class="font-text text-xs text-info hover:text-info/70 px-1 shrink-0">Modifier le statut</button>
                   </div>
                 </div>
-
-                <!-- ── DÉTAIL INLINE (INFORMATIONS ADMINISTRATIVES COMPLÈTES) ── -->
                 <div v-if="selectedUser?.id === user.id" class="border-b border-base-300 bg-base-300/50 p-6">
                   <div class="flex items-center justify-between mb-4 border-b border-base-300 pb-3">
                     <h3 class="font-titre font-bold text-base text-base-content">Détails de l'utilisateur — {{ selectedUser.username }}</h3>
                   </div>
-
                   <div v-if="loadingUserInfo" class="flex justify-center py-10">
                     <span class="loading loading-dots loading-sm text-primary"></span>
                   </div>
                   <div v-else-if="!detailedUserInfo" class="text-center py-6 font-code text-xs text-base-content/25">Impossible de charger les détails</div>
                   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-code text-xs">
-                    
-                    <!-- Bloc 1 : Général & Connexion -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col gap-2">
                       <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Informations générales</p>
                       <div class="flex justify-between"><span class="text-base-content/40">Création :</span> <span class="text-base-content">{{ detailedUserInfo.created_at }}</span></div>
                       <div class="flex justify-between"><span class="text-base-content/40">Preset :</span> <span class="text-base-content">{{ detailedUserInfo.user_preset }}</span></div>
                       <div class="flex justify-between"><span class="text-base-content/40">Dernière connexion :</span> <span class="text-base-content">{{ detailedUserInfo.last_connection }}</span></div>
                     </div>
-
-                    <!-- Bloc 2 : Inventaire (Badges & Cosmétiques remplacés par des boutons modales) -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col justify-between gap-3">
                       <div>
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Inventaire</p>
@@ -819,8 +714,6 @@ onMounted(() => {
                         </button>
                       </div>
                     </div>
-
-                    <!-- Bloc 3 : Succès (Achievements) -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col justify-between gap-3">
                       <div>
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Succès validés</p>
@@ -830,16 +723,12 @@ onMounted(() => {
                         Voir les succès validés ({{ detailedUserInfo.achievement_count }})
                       </button>
                     </div>
-
-                    <!-- Bloc 4 : Statistiques de Challenges -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col gap-2">
                       <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Statistiques de soumissions</p>
                       <div class="flex justify-between"><span class="text-base-content/40">Total soumissions :</span> <span class="font-bold text-base-content">{{ detailedUserInfo.challenges_count.total }}</span></div>
                       <div class="flex justify-between"><span class="text-base-content/40">Challenges uniques :</span> <span class="font-bold text-base-content">{{ detailedUserInfo.challenges_count.unique }}</span></div>
                       <div class="flex justify-between"><span class="text-base-content/40">Challenges validés :</span> <span class="font-bold text-success">{{ detailedUserInfo.challenges_count.validated }}</span></div>
                     </div>
-
-                    <!-- Bloc 5 : Historique des Status (Remplacé par un bouton modale) -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col justify-between gap-3">
                       <div>
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Historique des statuts</p>
@@ -849,8 +738,6 @@ onMounted(() => {
                         Voir l'historique des statuts ({{ detailedUserInfo.status_history.length }})
                       </button>
                     </div>
-
-                    <!-- Bloc 6 : Historique des Soumissions (Remplacé par un bouton modale) -->
                     <div class="bg-base-100/40 border border-base-300 p-4 flex flex-col justify-between gap-3 lg:col-span-3">
                       <div>
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Historique des soumissions de flags</p>
@@ -860,14 +747,11 @@ onMounted(() => {
                         Voir toutes les soumissions ({{ detailedUserInfo.challenges_history.length }})
                       </button>
                     </div>
-
                   </div>
                 </div>
               </template>
             </div>
           </div>
-
-          <!-- Footer / Pagination -->
           <div class="border-t border-base-300 px-4 py-3 bg-base-200/50 flex items-center justify-between shrink-0 font-code text-xs">
             <div class="flex items-center gap-4">
               <span class="text-base-content/50">
@@ -879,8 +763,6 @@ onMounted(() => {
                 @click="clearFilters"
               >Effacer les filtres ×</span>
             </div>
-
-            <!-- Contrôles de pagination -->
             <div class="flex items-center gap-2">
               <button
                 @click="prevPage"
@@ -889,11 +771,9 @@ onMounted(() => {
               >
                 Précédent
               </button>
-              
               <span class="text-base-content/70 px-2">
                 Page {{ currentPage }} / {{ totalPages }}
               </span>
-
               <button
                 @click="nextPage"
                 :disabled="currentPage >= totalPages || loadingUsers"
@@ -905,8 +785,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-
-      <!-- ── SOUS-SECTION : PRESETS - LISTE ── -->
       <div v-if="activeTab === 'users_presets_list'" class="flex flex-col gap-4 w-full">
         <div class="flex justify-start">
           <button
@@ -916,7 +794,6 @@ onMounted(() => {
             <span>+ Créer un nouveau preset</span>
           </button>
         </div>
-
         <div v-if="loadingPresets" class="flex justify-center py-20">
           <span class="loading loading-spinner loading-md text-primary"></span>
         </div>
@@ -945,7 +822,6 @@ onMounted(() => {
                 Supprimer
               </button>
             </div>
-
             <div v-if="expandedPreset === preset.id" class="bg-base-200/20 border-t border-base-200/50 p-4 animate-fade-in flex flex-col gap-4">
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 font-code text-xs">
                 <div class="bg-base-100 p-3 border border-base-300">
@@ -957,7 +833,6 @@ onMounted(() => {
                   <span class="font-bold text-base-content">{{ preset.affiliation }}</span>
                 </div>
               </div>
-
               <div class="flex justify-start">
                 <button
                   @click.stop="fetchPresetUsers(preset)"
@@ -970,8 +845,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-
-      <!-- ── SOUS-SECTION : PRESETS - CRÉER ── -->
       <div v-if="activeTab === 'users_presets_create'" class="w-full">
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
           <div class="border border-base-300 bg-base-200/40 p-6">
@@ -1001,7 +874,6 @@ onMounted(() => {
                   <option value="BORDEAUX">BORDEAUX</option>
                 </select>
               </div>
-
               <div class="flex gap-3 mt-4">
                 <button @click="createPreset" :disabled="creatingPreset || !newPresetForm.name.trim() || !newPresetForm.affiliation.trim()" class="px-5 py-2 bg-primary text-base-100 font-code text-xs hover:bg-primary/80 transition-colors disabled:opacity-30">
                   <span v-if="creatingPreset" class="loading loading-xs"></span>
@@ -1011,7 +883,6 @@ onMounted(() => {
               </div>
             </div>
           </div>
-
           <div class="sticky top-6 border border-primary/30 bg-base-100/90 p-6 shadow-2xl backdrop-blur-md">
             <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-6">
               <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Aperçu page d'inscription</span>
@@ -1055,8 +926,6 @@ onMounted(() => {
           </div>
         </div>
       </div>
-
-      <!-- ── SOUS-SECTION : TOKENS - LISTE ── -->
       <div v-if="activeTab === 'users_tokens_list'" class="flex flex-col gap-4 w-full">
         <div class="flex justify-start">
           <button
@@ -1066,7 +935,6 @@ onMounted(() => {
             <span>+ Créer un nouveau token</span>
           </button>
         </div>
-
         <div v-if="loadingPresets" class="flex justify-center py-20">
           <span class="loading loading-spinner loading-md text-primary"></span>
         </div>
@@ -1087,7 +955,6 @@ onMounted(() => {
               </span>
               <span class="font-text font-semibold text-base-content text-sm flex-1 truncate">{{ group.presetName }}</span>
             </div>
-
             <div v-if="expandedTokenPreset === group.presetId" class="bg-base-200/20 border-t border-base-200/50 p-4 animate-fade-in flex flex-col gap-4">
               <div class="grid grid-cols-2 md:grid-cols-2 gap-4 font-code text-xs">
                 <div class="bg-base-100 p-3 border border-base-300 flex flex-col gap-1">
@@ -1103,7 +970,6 @@ onMounted(() => {
                   </span>
                 </div>
               </div>
-
               <div class="flex justify-start">
                 <button
                   @click.stop="openPresetTokensModal(group)"
@@ -1116,13 +982,10 @@ onMounted(() => {
           </div>
         </div>
       </div>
-
-      <!-- ── SOUS-SECTION : TOKENS - CRÉER ── -->
       <div v-if="activeTab === 'users_tokens_create'" class="w-full">
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
           <div class="border border-base-300 bg-base-200/40 p-6">
             <h2 class="font-titre font-bold text-lg text-base-content mb-4">Générer un token d'invitation</h2>
-            
             <div class="flex flex-col gap-4">
               <div>
                 <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Sélectionner un preset *</label>
@@ -1131,12 +994,10 @@ onMounted(() => {
                   <option v-for="p in allPresets" :key="p.id" :value="p.id">{{ p.name }} ({{ p.affiliation }})</option>
                 </select>
               </div>
-
               <div>
                 <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Utilisations maximales</label>
                 <input v-model.number="newTokenMaxUses" type="number" min="1" placeholder="1" class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content" />
               </div>
-
               <div class="border border-base-300/60 bg-base-100/30 p-3 flex flex-col gap-3">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input v-model="enableName" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
@@ -1147,7 +1008,6 @@ onMounted(() => {
                   <input v-model="newTokenLastName" type="text" placeholder="Nom" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-1.5 font-code text-xs text-base-content" />
                 </div>
               </div>
-
               <div class="border border-base-300/60 bg-base-100/30 p-3 flex flex-col gap-3">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input v-model="enableClasse" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
@@ -1158,7 +1018,6 @@ onMounted(() => {
                   <input v-model="newTokenNiveau" type="text" placeholder="Niveau" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-1.5 font-code text-xs text-base-content" />
                 </div>
               </div>
-
               <div class="border border-base-300/60 bg-base-100/30 p-3 flex flex-col gap-3">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input v-model="enableEmail" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
@@ -1168,7 +1027,6 @@ onMounted(() => {
                   <input v-model="newTokenMail" type="email" placeholder="etudiant@guardiaschool.fr" class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-1.5 font-code text-xs text-base-content" />
                 </div>
               </div>
-
               <div class="border border-base-300/60 bg-base-100/30 p-3 flex flex-col gap-3">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input v-model="enableExpiration" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
@@ -1178,7 +1036,6 @@ onMounted(() => {
                   <input v-model="newTokenExpiresAt" type="datetime-local" class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-1.5 font-code text-xs text-base-content" />
                 </div>
               </div>
-
               <div class="flex gap-3 mt-2">
                 <button @click="createToken" :disabled="creatingToken || !newTokenPreset" class="px-5 py-2 bg-primary text-base-100 font-code text-xs hover:bg-primary/80 transition-colors disabled:opacity-30">
                   <span v-if="creatingToken" class="loading loading-xs"></span>
@@ -1188,7 +1045,6 @@ onMounted(() => {
               </div>
             </div>
           </div>
-
           <div class="sticky top-6 border border-primary/30 bg-base-100/90 p-6 shadow-2xl backdrop-blur-md">
             <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-6">
               <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Aperçu page d'inscription</span>
@@ -1239,15 +1095,12 @@ onMounted(() => {
           </div>
         </div>
       </div>
-      
-      <!-- ── SOUS-SECTION : TOKENS - AUTOMATISATION ── -->
       <div v-if="activeTab === 'users_tokens_auto'" class="w-full">
         <div class="border border-base-300 bg-base-200/40 p-6 max-w-xl">
           <h2 class="font-titre font-bold text-lg text-base-content mb-2">Importation automatisée</h2>
           <p class="font-code text-xs text-base-content/60 mb-6">
             Sélectionnez un preset cible et importez un fichier CSV contenant les colonnes : <code class="text-primary">mail</code>, <code class="text-primary">first_name</code>, <code class="text-primary">last_name</code>, <code class="text-primary">classe</code>, <code class="text-primary">niveau</code>.
           </p>
-          
           <div class="flex flex-col gap-4">
             <div>
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Preset cible *</label>
@@ -1256,19 +1109,16 @@ onMounted(() => {
                 <option v-for="p in allPresets" :key="p.id" :value="p.id">{{ p.name }} ({{ p.affiliation }})</option>
               </select>
             </div>
-
             <div>
               <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Fichier CSV *</label>
               <input @change="handleCsvFileSelect" type="file" accept=".csv" class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-base-200 file:text-base-content file:font-code file:text-xs text-xs text-base-content/70 cursor-pointer" />
             </div>
-
             <div class="border border-base-300/60 bg-base-100/30 p-3">
               <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input v-model="autoSendEmail" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
                 <span class="font-code text-xs text-base-content font-medium">Envoyer automatiquement l'e-mail d'invitation</span>
               </label>
             </div>
-
             <div class="flex gap-3 mt-2">
               <button @click="submitAutoCreateTokens" :disabled="uploadingAutoTokens || !autoTokenPreset || !selectedCsvFile" class="px-5 py-2 bg-primary text-base-100 font-code text-xs hover:bg-primary/80 transition-colors disabled:opacity-30">
                 <span v-if="uploadingAutoTokens" class="loading loading-xs"></span>
@@ -1281,8 +1131,6 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
-  <!-- ── POP-UP : LISTE COMPLÈTE DES TOKENS D'UN PRESET ── -->
   <Teleport to="body">
     <div v-if="presetTokensModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="presetTokensModalOpen = false">
       <div class="w-full max-w-7xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl">
@@ -1353,8 +1201,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- ── POP-UP : UTILISATEURS DU PRESET ── -->
   <Teleport to="body">
     <div v-if="presetUsersPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="presetUsersPanelOpen = false">
       <div class="w-full max-w-4xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl">
@@ -1408,8 +1254,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- ── MODALE DE SANCTION / MODIFICATION DE STATUT ── -->
   <Teleport to="body">
     <div v-if="statusModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="statusModalOpen = false">
       <div class="w-full max-w-md bg-base-200 border border-base-300 flex flex-col shadow-2xl p-6 font-code">
@@ -1420,7 +1264,6 @@ onMounted(() => {
           </div>
           <button @click="statusModalOpen = false" class="text-xs text-error hover:text-error/70">Fermer</button>
         </div>
-
         <div class="flex flex-col gap-4 text-xs">
           <div>
             <label class="block text-[10px] uppercase text-base-content/40 mb-1">Nouveau statut *</label>
@@ -1431,17 +1274,14 @@ onMounted(() => {
               <option value="BANNED">BANNED (Banni)</option>
             </select>
           </div>
-
           <div v-if="['LOCKED', 'BANNED'].includes(statusForm.new_status)">
             <label class="block text-[10px] uppercase text-base-content/40 mb-1">Raison (Obligatoire pour verrouillage/bannissement) *</label>
             <textarea v-model="statusForm.reason" rows="3" placeholder="Motif de la sanction..." class="w-full bg-base-100 border border-base-300 px-3 py-2 outline-none focus:border-primary resize-none"></textarea>
           </div>
-
           <div v-if="statusForm.new_status === 'LOCKED'">
             <label class="block text-[10px] uppercase text-base-content/40 mb-1">Date de fin du verrouillage (Optionnel)</label>
             <input v-model="statusForm.ended_at" type="datetime-local" class="w-full bg-base-100 border border-base-300 px-3 py-2 outline-none focus:border-primary" />
           </div>
-
           <div class="flex justify-end gap-2 mt-4">
             <button @click="statusModalOpen = false" class="px-4 py-2 border border-base-300 text-base-content/70 hover:bg-base-300/30">Annuler</button>
             <button @click="submitStatusUpdate" :disabled="updatingStatus" class="px-4 py-2 bg-primary text-base-100 font-bold hover:bg-primary/80 disabled:opacity-30">
@@ -1453,7 +1293,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-  <!-- ── MODALE : BADGES DE L'UTILISATEUR ── -->
   <Teleport to="body">
     <div v-if="userBadgesModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="userBadgesModalOpen = false">
       <div class="w-full max-w-xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl font-code">
@@ -1476,8 +1315,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- ── MODALE : COSMÉTIQUES DE L'UTILISATEUR ── -->
   <Teleport to="body">
     <div v-if="userCosmeticsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="userCosmeticsModalOpen = false">
       <div class="w-full max-w-xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl font-code">
@@ -1500,8 +1337,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- ── MODALE : HISTORIQUE DES STATUTS ── -->
   <Teleport to="body">
     <div v-if="userStatusHistoryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="userStatusHistoryModalOpen = false">
       <div class="w-full max-w-2xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl font-code">
@@ -1530,8 +1365,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- ── MODALE : HISTORIQUE DES SOUMISSIONS ── -->
   <Teleport to="body">
     <div v-if="userSubmissionsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="userSubmissionsModalOpen = false">
       <div class="w-full max-w-3xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col shadow-2xl font-code">

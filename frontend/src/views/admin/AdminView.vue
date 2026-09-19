@@ -5,17 +5,14 @@ import AdminUsers from './AdminUsers.vue'
 import AdminCosmetics from './AdminCosmetics.vue'
 import AdminAchievements from './AdminAchievements.vue'
 import AdminCommunication from './AdminCommunication.vue'
-import AdminConfig from './AdminConfig.vue'
 import AdminDocker from './AdminDocker.vue'
 import AdminUploads from './AdminUploads.vue'
+import { toast, showToast } from './useAdminToast.js'
+
 
 const activeSection = ref('challenges')
 const activeSubTab = ref('challenge')
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
-import { toast, showToast } from './useAdminToast.js'
-
-// ─── NAVIGATION ───────────────────────────────────────────────────────────────
 function onSectionChange(section) {
   activeSection.value = section
   // Définir un sous-onglet par défaut selon la section principale
@@ -25,8 +22,6 @@ function onSectionChange(section) {
     activeSubTab.value = 'item'
   } else if (section === 'communication') {
     activeSubTab.value = 'communication'
-  } else if (section === 'config') {
-    activeSubTab.value = 'setting'
   } else if (section === 'uploads') {
     activeSubTab.value = 'upload'
   } else if (section === 'docker') {
@@ -39,7 +34,6 @@ function onSectionChange(section) {
     activeSubTab.value = section 
   }
 }
-
 function onSubTabChange(subTab) {
   activeSubTab.value = subTab
 }
@@ -47,8 +41,6 @@ function onSubTabChange(subTab) {
 
 <template>
   <div class="flex min-h-[calc(100vh-8.5rem)] relative font-text">
-
-    <!-- TOAST -->
     <transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="translate-x-full opacity-0"
@@ -68,8 +60,6 @@ function onSubTabChange(subTab) {
         <span>{{ toast.message }}</span>
       </div>
     </transition>
-
-    <!-- SIDEBAR AVEC SOUS-ONGLETS -->
     <aside class="w-60 shrink-0 flex flex-col py-5 px-4 gap-2 bg-base-300 border-r border-secondary overflow-y-auto">
       <div class="px-3 mb-4">
         <p class="font-code text-[10px] tracking-[0.2em] uppercase text-base-content/40 mb-0.5">Panel Admin</p>
@@ -77,8 +67,6 @@ function onSubTabChange(subTab) {
           <p class="font-titre text-xl font-bold text-base-content leading-none">GuardiHack</p>
         </RouterLink>
       </div>
-
-      <!-- GROUPE : CHALLENGES -->
       <div class="flex flex-col">
         <button
           @click="onSectionChange('challenges')"
@@ -92,7 +80,6 @@ function onSubTabChange(subTab) {
           <span>Challenges</span>
           <span class="text-xs">{{ activeSection === 'challenges' ? '▼' : '▶' }}</span>
         </button>
-
         <div v-if="activeSection === 'challenges'" class="flex flex-col pl-4 mt-1 space-y-1 border-l border-secondary/40 ml-3">
           <button
             @click="onSubTabChange('challenge')"
@@ -114,8 +101,6 @@ function onSubTabChange(subTab) {
           </button>
         </div>
       </div>
-
-      <!-- 🟢 GROUPE : DOCKER (NOUVEAU) -->
       <div class="flex flex-col">
         <button
           @click="onSectionChange('docker')"
@@ -129,8 +114,6 @@ function onSubTabChange(subTab) {
           <span>Docker</span>
           <span class="text-xs">{{ activeSection === 'docker' ? '▼' : '▶' }}</span>
         </button>
-
-        <!-- Sous-onglets de Docker (Images & Instances) -->
         <div v-if="activeSection === 'docker'" class="flex flex-col pl-4 mt-1 space-y-1 border-l border-secondary/40 ml-3">
           <button
             @click="onSubTabChange('image')"
@@ -146,8 +129,6 @@ function onSubTabChange(subTab) {
           </button>
         </div>
       </div>
-
-      <!-- GROUPE : UTILISATEURS -->
       <div class="flex flex-col">
         <button
           @click="onSectionChange('users')"
@@ -161,7 +142,6 @@ function onSubTabChange(subTab) {
           <span>Utilisateurs</span>
           <span class="text-xs">{{ activeSection === 'users' ? '▼' : '▶' }}</span>
         </button>
-
         <div v-if="activeSection === 'users'" class="flex flex-col pl-4 mt-1 space-y-1 border-l border-secondary/40 ml-3">
           <button
             @click="onSubTabChange('user')"
@@ -183,8 +163,6 @@ function onSubTabChange(subTab) {
           </button>
         </div>
       </div>
-
-      <!-- GROUPE : COSMÉTIQUES -->
       <button
         @click="onSectionChange('cosmetics')"
         :class="[
@@ -196,8 +174,6 @@ function onSubTabChange(subTab) {
       >
         <span>Cosmétiques</span>
       </button>
-      
-      <!-- GROUPE : ACHIEVEMENTS -->
       <div class="flex flex-col">
         <button
           @click="onSectionChange('achievements')"
@@ -211,7 +187,6 @@ function onSubTabChange(subTab) {
           <span>Succès</span>
           <span class="text-xs">{{ activeSection === 'achievements' ? '▼' : '▶' }}</span>
         </button>
-
         <div v-if="activeSection === 'achievements'" class="flex flex-col pl-4 mt-1 space-y-1 border-l border-secondary/40 ml-3">
           <button
             @click="onSubTabChange('achievement_list')"
@@ -227,8 +202,6 @@ function onSubTabChange(subTab) {
           </button>
         </div>
       </div>
-
-      <!-- GROUPE : COMMUNICATION -->
       <button
         @click="onSectionChange('communication')"
         :class="[
@@ -240,8 +213,6 @@ function onSubTabChange(subTab) {
       >
         <span>Communication</span>
       </button>
-
-      <!-- GROUPE : UPLOADS -->
       <button
         @click="onSectionChange('uploads')"
         :class="[
@@ -253,8 +224,6 @@ function onSubTabChange(subTab) {
       >
         <span>Photothèque</span>
       </button>
-
-      <!-- GROUPE : CONFIGURATION -->
       <button
         @click="onSectionChange('config')"
         :class="[
@@ -267,8 +236,6 @@ function onSubTabChange(subTab) {
         <span>Configuration</span>
       </button>
     </aside>
-
-    <!-- CONTENU PRINCIPAL -->
     <main class="flex-1 overflow-y-auto px-8 py-2">
       <AdminChallenges v-if="activeSection === 'challenges'" :initial-tab="activeSubTab" />
       <AdminUsers      v-else-if="activeSection === 'users'" :initial-tab="activeSubTab" />
@@ -277,7 +244,6 @@ function onSubTabChange(subTab) {
       <AdminCosmetics  v-else-if="activeSection === 'cosmetics'" />
       <AdminAchievements v-else-if="activeSection === 'achievements'" :initial-tab="activeSubTab" />
       <AdminUploads    v-else-if="activeSection === 'uploads'" :initial-tab="activeSubTab" />
-      <AdminConfig     v-else-if="activeSection === 'config'" />
     </main>
   </div>
 </template>

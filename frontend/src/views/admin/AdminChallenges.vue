@@ -10,10 +10,6 @@ const props = defineProps({
     default: 'challenge',
   },
 })
-
-// ════════════════════════════════════════════════════════
-// 1. DÉCLARATION DES VARIABLES & ÉTATS
-// ════════════════════════════════════════════════════════
 const challenges        = ref([])
 const totalChallenges   = ref(0)
 const categories        = ref([])
@@ -23,21 +19,15 @@ const expandedChallenge = ref(null)
 const challengeDetail   = ref(null)
 const revealedFlag      = ref(null)
 const revealingFlag     = ref(false)
-
-// Historique
 const challengeHistory  = ref([])
 const historyOffset     = ref(0)
 const loadingHistory    = ref(false)
 const historyPanelOpen  = ref(false)
 const exportingHistory  = ref(false)
-
-// Rotations associées à un challenge
 const challengeRotation = ref([])
 const rotationOffset    = ref(0)
 const loadingRotation   = ref(false)
 const rotationPanelOpen = ref(false)
-
-// Fichiers
 const challengeFiles        = ref([])
 const loadingChallengeFiles = ref(false)
 const newFile               = ref(null)
@@ -46,8 +36,6 @@ const newFileType           = ref('MAIN')
 const newFileName           = ref('')
 const addingFile            = ref(false)
 const deletingFileIds       = ref(new Set())
-
-// Filtres et Tri (Liste challenges)
 const search           = ref('')
 const filterActive     = ref('')
 const filterDifficulty = ref('')
@@ -55,60 +43,37 @@ const filterCategory   = ref('')
 const filterType       = ref('')
 const sortKey          = ref('name')
 const sortDir          = ref('asc')
-
 const currentPage    = ref(1)
 const itemsPerPage   = 25
-
-// Catégories (Dépliement)
 const expandedCategory          = ref(null)
 const loadingCategoryChallenges = ref(false)
 const categoryChallenges        = ref([])
-
-// Rotations Management
 const availableSearchQuery              = ref('')
 const selectedChallengesToAddToRot      = ref([])
 const selectedChallengesToRemoveFromRot = ref([])
 const expandedRotCategory               = ref(null)
 const rotationCategoryChallenges        = reactive({})
 const filteredSearchedChallenges        = ref([])
-
-// États pour les modales (Remplacement des onglets)
 const rotModal = reactive({ isOpen: false, mode: 'create' })
 const catModal = reactive({ isOpen: false, mode: 'create' })
-
-// Cible active pour l'onglet Geoint spécifique
 const geointTarget = ref(null)
-
-// ════════════════════════════════════════════════════════
-// 2. COMPUTED PROPERTIES
-// ════════════════════════════════════════════════════════
 const tabGroup = computed(() => TAB_GROUPS[props.initialTab] ?? TAB_GROUPS.challenge)
 const activeTab = ref('challenge_list')
-
 const filteredChallengesTable = computed(() => challenges.value)
-
 const challengesInRot = computed(() => new Set(rotationChallenges.value.map(c => c.id)))
-
-// Identifie la rotation active sélectionnée pour récupérer ses dates
 const selectedRotationObj = computed(() => {
   return rotations.value.find(r => r.id === selectedRotId.value) || null
 })
-
-// Détecte les conflits de dates avec d'autres rotations (Basé sur la logique backend)
 const conflictingChallengeIds = computed(() => {
   const currentRot = selectedRotationObj.value
   if (!currentRot || !currentRot.start_time || !currentRot.end_time) return new Set()
-
   const conflicts = new Set()
   const currentStart = new Date(currentRot.start_time)
   const currentEnd = new Date(currentRot.end_time)
-
   rotations.value.forEach(rot => {
     if (rot.id === currentRot.id || !rot.start_time || !rot.end_time) return
     const rotStart = new Date(rot.start_time)
     const rotEnd = new Date(rot.end_time)
-
-    // Vérifie le chevauchement temporel
     const isOverlapping = rotStart <= currentEnd && rotEnd >= currentStart
     if (isOverlapping && rot.challenges) {
       rot.challenges.forEach(ch => conflicts.add(ch.id))
@@ -116,8 +81,6 @@ const conflictingChallengeIds = computed(() => {
   })
   return conflicts
 })
-
-// Compteur global des rotations disponibles
 const totalAvailableRotationsCount = computed(() => {
   let total = 0
   Object.keys(rotationCategoryChallenges).forEach(catId => {
@@ -126,10 +89,6 @@ const totalAvailableRotationsCount = computed(() => {
   })
   return total
 })
-
-// ════════════════════════════════════════════════════════
-// 3. CONFIGURATION DES ONGLETS & HELPERS UI
-// ════════════════════════════════════════════════════════
 const TAB_GROUPS = {
   challenge: [
     { id: 'challenge_list', label: 'Liste' },
@@ -148,7 +107,6 @@ const TAB_GROUPS = {
     { id: 'category_list', label: 'Liste' },
   ],
 }
-
 const DIFF_MAP = {
   INTRO: 'bg-info/15 text-info border border-info/30',
   EASY:   'bg-success/15 text-success border border-success/30',
@@ -161,6 +119,71 @@ const typeClass = t => t === 'PERMANENT'
   ? 'bg-info/15 text-info border border-info/30'
   : 'bg-secondary/15 text-secondary border border-secondary/30'
 const wrapFlag = f => f ? `GH{${f}}` : f
+const breadcrumbSubCategory = computed(() => {
+  if (activeTab.value.startsWith('challenge_')) return 'Challenges'
+  if (activeTab.value.startsWith('geoint_')) return 'Geoint'
+  if (activeTab.value.startsWith('category_')) return 'Catégories'
+  if (activeTab.value.startsWith('rotation_')) return 'Rotations'
+  return ''
+})
+const confirmModal = reactive({
+  isOpen: false,
+  title: '',
+  message: '',
+  onConfirm: null
+})
+const createDefaults = { 
+  name: '', type: 'PERMANENT', description: '', category_id: '', 
+  difficulty: 'MEDIUM', points: 100, access_type: 'none', 
+  docker_image_id: null, external_url: '', flag_type: 'STATIC', master_flag: '' 
+}
+const createForm = reactive({ ...createDefaults })
+const creating   = ref(false)
+const editTarget   = ref(null)
+const editForm     = reactive({ 
+  name: '', type: '', description: '', category_id: '', difficulty: '', 
+  points: 0, access_type: 'none', docker_image_id: null, external_url: '', 
+  flag_type: '', master_flag: '', hidden: false 
+})
+const editing      = ref(false)
+const existingFlag = ref('')
+const rotations        = ref([])
+const loadingRotations = ref(false)
+const rotationForm     = reactive({ name: '', start_time: '', end_time: '' })
+const creatingRotation = ref(false)
+const expandedRotation = ref(null)
+const editRotTarget    = ref(null)
+const editRotForm      = reactive({ name: '', start_time: '', end_time: '' })
+const editingRot       = ref(false)
+const selectedRotId    = ref(null)
+const rotationChallenges = ref([])
+const toBackendDate = s => s ? s.replace('T', ' ') + ':00' : ''
+const toLocalDate   = s => s ? s.substring(0, 16) : ''
+const loadingCategories = ref(false)
+const catForm           = reactive({ name: '', description: '' })
+const creatingCat       = ref(false)
+const editCatTarget     = ref(null)
+const editCatForm       = reactive({ name: '', description: '' })
+const toggleCategory = async (categoryId) => {
+  if (expandedCategory.value === categoryId) {
+    expandedCategory.value = null
+    categoryChallenges.value = []
+    return
+  }
+  expandedCategory.value = categoryId
+  loadingCategoryChallenges.value = true
+  categoryChallenges.value = []
+
+  try {
+    const response = await axios.get(`/api/admin/challenge/category/${categoryId}/challenges`)
+    categoryChallenges.value = response.data?.challenges ?? []
+  } catch {
+    showToast('Impossible de charger les challenges de la catégorie', 'error')
+  } finally {
+    loadingCategoryChallenges.value = false
+  }
+}
+
 
 function defaultTabForGroup(groupKey) {
   if (groupKey === 'geoint') return 'geoint_list'
@@ -168,7 +191,6 @@ function defaultTabForGroup(groupKey) {
   if (groupKey === 'category') return 'category_list'
   return 'challenge_list'
 }
-
 function onTabChange(tab) {
   activeTab.value = tab
   if (tab.startsWith('rotation_')) {
@@ -178,45 +200,20 @@ function onTabChange(tab) {
   if (tab.startsWith('category_')) fetchCategoriesFull()
   if (tab === 'challenge_list') fetchChallenges()
 }
-
-const breadcrumbSubCategory = computed(() => {
-  if (activeTab.value.startsWith('challenge_')) return 'Challenges'
-  if (activeTab.value.startsWith('geoint_')) return 'Geoint'
-  if (activeTab.value.startsWith('category_')) return 'Catégories'
-  if (activeTab.value.startsWith('rotation_')) return 'Rotations'
-  return ''
-})
-
-// ════════════════════════════════════════════════════════
-// 4. GESTION DES POPUPS DE CONFIRMATION
-// ════════════════════════════════════════════════════════
-const confirmModal = reactive({
-  isOpen: false,
-  title: '',
-  message: '',
-  onConfirm: null
-})
-
 function triggerConfirm(title, message, callback) {
   confirmModal.title = title
   confirmModal.message = message
   confirmModal.onConfirm = callback
   confirmModal.isOpen = true
 }
-
 function handleConfirmDialog() {
   if (confirmModal.onConfirm) confirmModal.onConfirm()
   closeConfirmDialog()
 }
-
 function closeConfirmDialog() {
   confirmModal.isOpen = false
   confirmModal.onConfirm = null
 }
-
-// ════════════════════════════════════════════════════════
-// 5. FONCTIONS API (Challenges, Fichiers, Historique, Images Docker)
-// ════════════════════════════════════════════════════════
 async function fetchChallenges() {
   loadingChallenges.value = true
   try {
@@ -227,7 +224,6 @@ async function fetchChallenges() {
     if (filterCategory.value) params.category = filterCategory.value
     if (filterType.value) params.type = filterType.value
     if (filterActive.value) params.active = filterActive.value
-
     const res = await axios.get('/api/admin/challenge/list', { params })
     totalChallenges.value = res.data?.total_challenges ?? 0
     challenges.value = res.data?.challenges ?? []
@@ -237,32 +233,18 @@ async function fetchChallenges() {
     loadingChallenges.value = false
   }
 }
-
 async function fetchDockerImages() {
   try {
     const res = await axios.get('/api/admin/docker/image/list')
     dockerImagesList.value = res.data?.images ?? res.data?.data ?? []
   } catch {}
 }
-
-watch(
-  [search, filterActive, filterDifficulty, filterCategory, filterType, sortKey, sortDir, currentPage],
-  () => {
-    fetchChallenges()
-  }
-)
-
-watch([search, filterActive, filterDifficulty, filterCategory, filterType], () => {
-  currentPage.value = 1
-})
-
 async function fetchCategories() {
   try {
     const res = await axios.get('/api/admin/challenge/category/list')
     categories.value = res.data?.categories ?? res.data?.data ?? []
   } catch {}
 }
-
 async function toggleChallenge(id) {
   if (expandedChallenge.value === id) {
     expandedChallenge.value = null
@@ -287,7 +269,6 @@ async function toggleChallenge(id) {
   newFile.value           = null
   newFileName.value       = ''
   if (newFileInput.value) newFileInput.value.value = ''
-  
   try {
     const res = await axios.get(`/api/admin/challenge/${id}/info`)
     challengeDetail.value = res.data?.challenge ?? res.data?.data ?? res.data
@@ -298,7 +279,6 @@ async function toggleChallenge(id) {
   fetchHistory(id, 0)
   fetchChallengeFiles(id)
 }
-
 async function fetchHistory(id, offset) {
   loadingHistory.value = true
   try {
@@ -313,7 +293,6 @@ async function fetchHistory(id, offset) {
     loadingHistory.value = false
   }
 }
-
 async function fetchRotation(rotations) {
   loadingRotation.value = true
   try {
@@ -325,7 +304,6 @@ async function fetchRotation(rotations) {
     loadingRotation.value = false
   }
 }
-
 async function downloadHistoryCsv() {
   if (!challengeDetail.value) return
   exportingHistory.value = true
@@ -333,7 +311,6 @@ async function downloadHistoryCsv() {
     const challengeId = challengeDetail.value.id
     let offset = 0
     let allEntries = []
-
     while (true) {
       const res     = await axios.get(`/api/admin/challenge/${challengeId}/history/${offset}`)
       const entries = res.data?.history ?? res.data?.data ?? []
@@ -341,28 +318,23 @@ async function downloadHistoryCsv() {
       if (entries.length < 20) break
       offset += entries.length
     }
-
     if (!allEntries.length) {
       showToast("Aucune soumission à exporter", 'error')
       return
     }
-
     const headers = ['ID', 'Username', 'Flag soumis', 'Valide','Type de flag', 'Date de soumission']
     const escape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
     const rows = allEntries.map(e => [
       e.submission_id, e.username, e.flag_submitted, e.is_correct, e.flag_type, e.submitted_at,
     ].map(escape).join(','))
-
     const csv = [headers.join(','), ...rows].join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
-
     const now = new Date()
     const pad = (n) => String(n).padStart(2, '0')
     const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
     const safeName = (challengeDetail.value.name || 'challenge').trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9_-]/g, '')
     const filename = `${safeName}_ID${challengeId}_soumission_${dateStr}.csv`
-
     const a = document.createElement('a')
     a.href = url
     a.download = filename
@@ -374,7 +346,6 @@ async function downloadHistoryCsv() {
     exportingHistory.value = false
   }
 }
-
 async function fetchChallengeFiles(id) {
   loadingChallengeFiles.value = true
   try {
@@ -386,7 +357,6 @@ async function fetchChallengeFiles(id) {
     loadingChallengeFiles.value = false
   }
 }
-
 async function revealFlag(id) {
   revealingFlag.value = true
   try {
@@ -398,11 +368,9 @@ async function revealFlag(id) {
     revealingFlag.value = false
   }
 }
-
 function onNewFileChange(e) {
   newFile.value = e.target.files[0] ?? null
 }
-
 async function addChallengeFile(challengeId) {
   if (!newFile.value) { showToast('Sélectionne un fichier', 'error'); return }
   addingFile.value = true
@@ -423,7 +391,6 @@ async function addChallengeFile(challengeId) {
     addingFile.value = false
   }
 }
-
 function removeChallengeFile(challengeId, fileId, fileName) {
   if (deletingFileIds.value.has(fileId)) return
   triggerConfirm(
@@ -445,7 +412,6 @@ function removeChallengeFile(challengeId, fileId, fileName) {
     }
   )
 }
-
 function deleteChallenge(id, name) {
   triggerConfirm(
     'Supprimer le challenge',
@@ -462,7 +428,6 @@ function deleteChallenge(id, name) {
     }
   )
 }
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -471,7 +436,6 @@ function setSort(key) {
     sortDir.value = 'asc'
   }
 }
-
 function clearFilters() {
   search.value           = ''
   filterActive.value     = ''
@@ -480,18 +444,6 @@ function clearFilters() {
   filterType.value       = ''
   currentPage.value      = 1
 }
-
-// ════════════════════════════════════════════════════════
-// 6. FORMULAIRES CRÉATION / MODIFICATION CHALLENGE
-// ════════════════════════════════════════════════════════
-const createDefaults = { 
-  name: '', type: 'PERMANENT', description: '', category_id: '', 
-  difficulty: 'MEDIUM', points: 100, access_type: 'none', 
-  docker_image_id: null, external_url: '', flag_type: 'STATIC', master_flag: '' 
-}
-const createForm = reactive({ ...createDefaults })
-const creating   = ref(false)
-
 async function submitCreate() {
   creating.value = true
   try {
@@ -513,16 +465,6 @@ async function submitCreate() {
     creating.value = false
   }
 }
-
-const editTarget   = ref(null)
-const editForm     = reactive({ 
-  name: '', type: '', description: '', category_id: '', difficulty: '', 
-  points: 0, access_type: 'none', docker_image_id: null, external_url: '', 
-  flag_type: '', master_flag: '', hidden: false 
-})
-const editing      = ref(false)
-const existingFlag = ref('')
-
 async function openEdit(ch) {
   editTarget.value   = ch.id
   activeTab.value    = 'challenge_edit'
@@ -534,7 +476,6 @@ async function openEdit(ch) {
     let accType = 'none'
     if (d.docker_image_id) accType = 'docker'
     else if (d.external_url) accType = 'external'
-
     Object.assign(editForm, {
       name:            d.name             ?? ch.name,
       type:            d.type             ?? ch.type             ?? 'PERMANENT',
@@ -554,7 +495,6 @@ async function openEdit(ch) {
     showToast('Infos partielles chargées (fallback)', 'error')
   }
 }
-
 async function submitEdit() {
   editing.value = true
   try {
@@ -571,7 +511,6 @@ async function submitEdit() {
       new_external_url:    access_type === 'external' ? (external_url ? external_url.trim() : null) : null,
     }
     if (master_flag) payload.new_master_flag = wrapFlag(master_flag)
-    
     await axios.post(`/api/admin/challenge/${editTarget.value}/modify`, payload)
     showToast('Challenge modifié !')
     activeTab.value  = 'challenge_list'
@@ -583,7 +522,6 @@ async function submitEdit() {
     editing.value = false
   }
 }
-
 async function toggleVisibility(ch) {
   try {
     const endpoint = ch.hidden ? 'activate' : 'desactivate'
@@ -594,24 +532,6 @@ async function toggleVisibility(ch) {
     showToast(e.response?.data?.message ?? 'Erreur visibilité', 'error')
   }
 }
-
-// ════════════════════════════════════════════════════════
-// 7. GESTION DES ROTATIONS
-// ════════════════════════════════════════════════════════
-const rotations        = ref([])
-const loadingRotations = ref(false)
-const rotationForm     = reactive({ name: '', start_time: '', end_time: '' })
-const creatingRotation = ref(false)
-const expandedRotation = ref(null)
-const editRotTarget    = ref(null)
-const editRotForm      = reactive({ name: '', start_time: '', end_time: '' })
-const editingRot       = ref(false)
-const selectedRotId    = ref(null)
-const rotationChallenges = ref([])
-
-const toBackendDate = s => s ? s.replace('T', ' ') + ':00' : ''
-const toLocalDate   = s => s ? s.substring(0, 16) : ''
-
 async function fetchRotations() {
   loadingRotations.value = true
   try {
@@ -623,13 +543,11 @@ async function fetchRotations() {
     loadingRotations.value = false
   }
 }
-
 function openCreateRotModal() {
   Object.assign(rotationForm, { name: '', start_time: '', end_time: '' })
   rotModal.mode = 'create'
   rotModal.isOpen = true
 }
-
 async function createRotation() {
   if (!rotationForm.name || !rotationForm.start_time || !rotationForm.end_time) {
     showToast('Tous les champs sont requis', 'error'); return
@@ -650,7 +568,6 @@ async function createRotation() {
     creatingRotation.value = false
   }
 }
-
 function openEditRotModal(rot) {
   editRotTarget.value = rot.id
   Object.assign(editRotForm, {
@@ -661,7 +578,6 @@ function openEditRotModal(rot) {
   rotModal.mode = 'edit'
   rotModal.isOpen = true
 }
-
 async function submitEditRot() {
   editingRot.value = true
   try {
@@ -680,7 +596,6 @@ async function submitEditRot() {
     editingRot.value = false
   }
 }
-
 function deleteRotation(id, name) {
   triggerConfirm(
     'Supprimer la rotation',
@@ -698,7 +613,6 @@ function deleteRotation(id, name) {
     }
   )
 }
-
 async function fetchRotationChallenges(id) {
   try {
     const res = await axios.get(`/api/admin/challenge/rotation/${id}/info/`)
@@ -708,25 +622,21 @@ async function fetchRotationChallenges(id) {
     rotationChallenges.value = []
   }
 }
-
 async function selectRotation(rot) {
   selectedRotId.value = rot.id
   await fetchRotationChallenges(rot.id)
 }
-
 function toggleSelectChallengeForRot(id) {
   if (conflictingChallengeIds.value.has(id)) return
   const index = selectedChallengesToAddToRot.value.indexOf(id)
   if (index > -1) selectedChallengesToAddToRot.value.splice(index, 1)
   else selectedChallengesToAddToRot.value.push(id)
 }
-
 function toggleSelectChallengeToRemoveFromRot(id) {
   const index = selectedChallengesToRemoveFromRot.value.indexOf(id)
   if (index > -1) selectedChallengesToRemoveFromRot.value.splice(index, 1)
   else selectedChallengesToRemoveFromRot.value.push(id)
 }
-
 async function addSelectedToRot() {
   if (!selectedChallengesToAddToRot.value.length || !selectedRotId.value) return
   try {
@@ -745,7 +655,6 @@ async function addSelectedToRot() {
     showToast(e.response?.data?.message ?? 'Erreur lors de l\'ajout groupé', 'error')
   }
 }
-
 async function removeSelectedFromRot() {
   if (!selectedChallengesToRemoveFromRot.value.length || !selectedRotId.value) return
   try {
@@ -764,14 +673,12 @@ async function removeSelectedFromRot() {
     showToast(e.response?.data?.message ?? 'Erreur lors du retrait groupé', 'error')
   }
 }
-
 async function toggleRotationCategory(categoryId) {
   if (expandedRotCategory.value === categoryId) {
     expandedRotCategory.value = null
     return
   }
   expandedRotCategory.value = categoryId
-
   if (!rotationCategoryChallenges[categoryId]) {
     loadingCategoryChallenges.value = true
     try {
@@ -786,33 +693,6 @@ async function toggleRotationCategory(categoryId) {
     }
   }
 }
-
-watch(availableSearchQuery, async (newVal) => {
-  if (!newVal.trim()) {
-    filteredSearchedChallenges.value = []
-    return
-  }
-  try {
-    const params = { search: newVal.trim(), limit: 50, type: 'ROTATION' }
-    const res = await axios.get('/api/admin/challenge/list', { params })
-    const allFound = res.data?.challenges ?? []
-    filteredSearchedChallenges.value = allFound
-      .filter(ch => (ch.type || '').toUpperCase() === 'ROTATION')
-      .filter(ch => !challengesInRot.value.has(ch.id))
-  } catch (e) {
-    console.error("Erreur recherche challenges", e)
-  }
-})
-
-// ════════════════════════════════════════════════════════
-// 8. GESTION DES CATÉGORIES (CRUD ADMIN)
-// ════════════════════════════════════════════════════════
-const loadingCategories = ref(false)
-const catForm           = reactive({ name: '', description: '' })
-const creatingCat       = ref(false)
-const editCatTarget     = ref(null)
-const editCatForm       = reactive({ name: '', description: '' })
-
 async function fetchCategoriesFull() {
   loadingCategories.value = true
   try {
@@ -824,13 +704,11 @@ async function fetchCategoriesFull() {
     loadingCategories.value = false
   }
 }
-
 function openCreateCatModal() {
   Object.assign(catForm, { name: '', description: '' })
   catModal.mode = 'create'
   catModal.isOpen = true
 }
-
 async function createCategory() {
   creatingCat.value = true
   try {
@@ -844,7 +722,6 @@ async function createCategory() {
     creatingCat.value = false
   }
 }
-
 function deleteCategory(id, name) {
   triggerConfirm(
     'Supprimer la catégorie',
@@ -860,14 +737,12 @@ function deleteCategory(id, name) {
     }
   )
 }
-
 function openEditCatModal(cat) {
   editCatTarget.value = cat.id
   Object.assign(editCatForm, { name: cat.name, description: cat.description })
   catModal.mode = 'edit'
   catModal.isOpen = true
 }
-
 async function submitEditCat() {
   try {
     await axios.post(`/api/admin/challenge/category/${editCatTarget.value}/modify`, {
@@ -882,29 +757,6 @@ async function submitEditCat() {
   }
 }
 
-const toggleCategory = async (categoryId) => {
-  if (expandedCategory.value === categoryId) {
-    expandedCategory.value = null
-    categoryChallenges.value = []
-    return
-  }
-  expandedCategory.value = categoryId
-  loadingCategoryChallenges.value = true
-  categoryChallenges.value = []
-
-  try {
-    const response = await axios.get(`/api/admin/challenge/category/${categoryId}/challenges`)
-    categoryChallenges.value = response.data?.challenges ?? []
-  } catch {
-    showToast('Impossible de charger les challenges de la catégorie', 'error')
-  } finally {
-    loadingCategoryChallenges.value = false
-  }
-}
-
-// ════════════════════════════════════════════════════════
-// 9. WATCHERS & LIFECYCLE
-// ════════════════════════════════════════════════════════
 watch(
   () => props.initialTab,
   async (groupKey) => {
@@ -922,6 +774,31 @@ watch(
   },
   { immediate: true }
 )
+watch(
+  [search, filterActive, filterDifficulty, filterCategory, filterType, sortKey, sortDir, currentPage],
+  () => {
+    fetchChallenges()
+  }
+)
+watch([search, filterActive, filterDifficulty, filterCategory, filterType], () => {
+  currentPage.value = 1
+})
+watch(availableSearchQuery, async (newVal) => {
+  if (!newVal.trim()) {
+    filteredSearchedChallenges.value = []
+    return
+  }
+  try {
+    const params = { search: newVal.trim(), limit: 50, type: 'ROTATION' }
+    const res = await axios.get('/api/admin/challenge/list', { params })
+    const allFound = res.data?.challenges ?? []
+    filteredSearchedChallenges.value = allFound
+      .filter(ch => (ch.type || '').toUpperCase() === 'ROTATION')
+      .filter(ch => !challengesInRot.value.has(ch.id))
+  } catch (e) {
+    console.error("Erreur recherche challenges", e)
+  }
+})
 
 onMounted(() => {
   fetchChallenges()
@@ -932,7 +809,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- Titre Principal -->
   <div class="flex items-center justify-between mb-6">
     <div>
       <p class="font-code text-[10px] tracking-[0.18em] uppercase text-base-content/40 mb-1">Admin > {{ breadcrumbSubCategory }}</p>
@@ -940,8 +816,6 @@ onMounted(() => {
     </div>
     <span v-if="activeTab === 'challenge_list'" class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ challenges.length }} CHALLENGE{{ challenges.length > 1 ? 'S' : '' }}</span>
   </div>
-
-  <!-- Barre d'onglets -->
   <div class="flex gap-0 border-b border-primary mb-6">
     <button
       v-for="tab in tabGroup"
@@ -958,10 +832,7 @@ onMounted(() => {
       ]"
     >{{ tab.label }}</button>
   </div>
-
   <div class="flex gap-6 flex-1 min-h-0">
-
-    <!-- ── TAB : LISTE DES CHALLENGES ── -->
     <div v-if="activeTab === 'challenge_list'" class="flex flex-col gap-4 w-full">
     <div class="flex justify-start">
       <button
@@ -971,8 +842,6 @@ onMounted(() => {
         <span>+ Créer un nouveau challenge</span>
       </button>
     </div>
-
-    <!-- Filtres et recherche -->
     <div class="flex items-center gap-2 flex-wrap mb-2">
       <div class="relative flex-1 min-w-48">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -983,13 +852,11 @@ onMounted(() => {
           class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none pl-7 pr-3 py-2 font-code text-xs text-base-content placeholder:text-base-content/25 transition-colors"
         />
       </div>
-
       <select v-model="filterActive" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content transition-colors">
         <option value="">Tous les statuts</option>
         <option value="true">Actif</option>
         <option value="false">Inactif</option>
       </select>
-
       <select v-model="filterDifficulty" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content transition-colors">
         <option value="">Toutes les difficultés</option>
         <option value="INRO">INTRO</option>
@@ -998,20 +865,16 @@ onMounted(() => {
         <option value="HARD">HARD</option>
         <option value="EXPERT">EXPERT</option>
       </select>
-
       <select v-model="filterCategory" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content transition-colors">
         <option value="">Toutes les catégories</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.name">{{ cat.name }}</option>
       </select>
-
       <select v-model="filterType" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content transition-colors">
         <option value="">Tous les types</option>
         <option value="PERMANENT">PERMANENT</option>
         <option value="ROTATION">ROTATION</option>
       </select>
     </div>
-
-    <!-- Tableau -->
     <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
       <div class="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_120px] bg-base-200 border-b border-base-300 shrink-0">
         <button
@@ -1031,7 +894,6 @@ onMounted(() => {
         </button>
         <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
       </div>
-
       <div class="flex-1 overflow-y-auto">
         <div v-if="loadingChallenges" class="flex justify-center py-16">
           <span class="loading loading-spinner loading-md text-primary"></span>
@@ -1072,8 +934,6 @@ onMounted(() => {
                 <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteChallenge(ch.id, ch.name)" title="Supprimer">Supprimer</button>
               </div>
             </div>
-
-            <!-- Accordéon -->
             <div v-if="expandedChallenge === ch.id" class="border-b border-base-300 bg-base-300/50">
               <div v-if="!challengeDetail" class="flex justify-center py-10">
                 <span class="loading loading-dots loading-sm text-primary"></span>
@@ -1112,7 +972,6 @@ onMounted(() => {
                           <dd class="text-base-content truncate max-w-xs">{{ challengeDetail.external_url }}</dd>
                         </template>
                       </dl>
-
                       <div class="flex flex-col gap-2 justify-center">
                         <button
                           @click="historyPanelOpen = true"
@@ -1145,11 +1004,8 @@ onMounted(() => {
                     <p class="text-sm text-base-content/70 bg-base-300/60 border border-base-100 px-3 py-2.5 leading-relaxed">{{ challengeDetail.description || 'Aucune description.' }}</p>
                   </div>
                 </div>
-
-                <!-- Fichiers -->
                 <div class="lg:col-span-2">
                   <p class="font-code text-[10px] tracking-widest uppercase text-primary/70 mb-3">Fichiers du challenge</p>
-
                   <div v-if="loadingChallengeFiles" class="flex justify-center py-6">
                     <span class="loading loading-dots loading-sm text-primary"></span>
                   </div>
@@ -1168,7 +1024,6 @@ onMounted(() => {
                       <button @click="removeChallengeFile(ch.id, f.id, f.file_name)" class="text-error hover:text-error/70 transition-colors px-1 shrink-0" title="Supprimer">Supprimer</button>
                     </div>
                   </div>
-
                   <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end">
                     <div class="flex flex-col gap-1 flex-1">
                       <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Fichier</label>
@@ -1191,7 +1046,6 @@ onMounted(() => {
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           </template>
@@ -1199,20 +1053,16 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
-  <!-- ── TAB : CRÉATION DE CHALLENGE (AVEC SELECT DOCKER PAR NOM) ── -->
   <div v-if="activeTab === 'challenge_create'" class="w-full">
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
       <div class="border border-base-300 bg-base-200/40 p-6">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Nouveau challenge</p>
         <h2 class="font-titre font-bold text-lg text-base-content mb-6">Créer un challenge</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom *</label>
             <input v-model="createForm.name" type="text" placeholder="Web Exploitation 101" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type</label>
             <select v-model="createForm.type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1220,7 +1070,6 @@ onMounted(() => {
               <option value="ROTATION">ROTATION</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Catégorie *</label>
             <select v-model="createForm.category_id" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1228,19 +1077,16 @@ onMounted(() => {
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Difficulté</label>
             <select v-model="createForm.difficulty" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
               <option>INTRO</option><option>EASY</option><option>MEDIUM</option><option>HARD</option><option>EXPERT</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Points</label>
             <input v-model.number="createForm.points" type="number" min="0" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type de flag</label>
             <select v-model="createForm.flag_type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1248,7 +1094,6 @@ onMounted(() => {
               <option value="DYNAMIC">DYNAMIC</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type d'accès</label>
             <select v-model="createForm.access_type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1257,8 +1102,6 @@ onMounted(() => {
               <option value="external">URL Externe</option>
             </select>
           </div>
-
-          <!-- Select Docker par nom -->
           <div v-if="createForm.access_type === 'docker'" class="flex flex-col gap-1 sm:col-span-2">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Image Docker *</label>
             <select v-model.number="createForm.docker_image_id" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1268,12 +1111,10 @@ onMounted(() => {
               </option>
             </select>
           </div>
-
           <div v-if="createForm.access_type === 'external'" class="flex flex-col gap-1 sm:col-span-2">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">URL Externe *</label>
             <input v-model="createForm.external_url" type="text" placeholder="https://challenge.url" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors" />
           </div>
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Master flag *</label>
             <div class="flex items-center border border-base-300 focus-within:border-primary bg-base-100 transition-colors">
@@ -1282,12 +1123,10 @@ onMounted(() => {
               <span class="px-3 py-2 font-code text-sm text-base-content/40 border-l border-base-300 select-none">}</span>
             </div>
           </div>
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description</label>
             <textarea v-model="createForm.description" rows="4" placeholder="Description du challenge..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors resize-none"></textarea>
           </div>
-
         </div>
         <div class="flex gap-3 mt-6">
           <button @click="submitCreate" :disabled="creating || !createForm.name || !createForm.master_flag" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
@@ -1297,8 +1136,6 @@ onMounted(() => {
           <button @click="onTabChange('challenge_list')" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content hover:border-base-content/30 transition-colors">Annuler</button>
         </div>
       </div>
-      
-      <!-- Preview -->
       <div class="sticky top-6 border border-primary/30 bg-base-100/80 p-6 shadow-2xl backdrop-blur-md">
         <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-6">
           <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Prévisualisation du challenge</span>
@@ -1326,21 +1163,16 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
-  <!-- ── TAB : MODIFIER AVEC SELECT DOCKER PAR NOM ── -->
   <div v-if="activeTab === 'challenge_edit' && editTarget" class="w-full">
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-
       <div class="border border-base-300 bg-base-200/40 p-6">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Challenge #{{ editTarget }}</p>
         <h2 class="font-titre font-bold text-lg text-base-content mb-6">Modifier le challenge</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom</label>
             <input v-model="editForm.name" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type</label>
             <select v-model="editForm.type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1348,7 +1180,6 @@ onMounted(() => {
               <option value="ROTATION">ROTATION</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Catégorie</label>
             <select v-model="editForm.category_id" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1356,19 +1187,16 @@ onMounted(() => {
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Difficulté</label>
             <select v-model="editForm.difficulty" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
               <option>INTRO</option><option>EASY</option><option>MEDIUM</option><option>HARD</option><option>EXPERT</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Points</label>
             <input v-model.number="editForm.points" type="number" min="0" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type de flag</label>
             <select v-model="editForm.flag_type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1376,7 +1204,6 @@ onMounted(() => {
               <option value="DYNAMIC">DYNAMIC</option>
             </select>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Type d'accès</label>
             <select v-model="editForm.access_type" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1385,8 +1212,6 @@ onMounted(() => {
               <option value="external">URL Externe</option>
             </select>
           </div>
-
-          <!-- Select Docker par nom dans la modification -->
           <div v-if="editForm.access_type === 'docker'" class="flex flex-col gap-1 sm:col-span-2">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Image Docker</label>
             <select v-model.number="editForm.docker_image_id" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -1396,12 +1221,10 @@ onMounted(() => {
               </option>
             </select>
           </div>
-
           <div v-if="editForm.access_type === 'external'" class="flex flex-col gap-1 sm:col-span-2">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">URL Externe</label>
             <input v-model="editForm.external_url" type="text" placeholder="https://challenge.url" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nouveau flag <span class="text-base-content/25">(vide = inchangé)</span></label>
             <div class="flex items-center border border-base-300 focus-within:border-primary bg-base-100 transition-colors">
@@ -1410,12 +1233,10 @@ onMounted(() => {
               <span class="px-3 py-2 font-code text-sm text-base-content/40 border-l border-base-300 select-none">}</span>
             </div>
           </div>
-
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description <span class="text-base-content/25">(optionnel)</span></label>
             <textarea v-model="editForm.description" rows="4" placeholder="Description du challenge..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content placeholder:text-base-content/20 transition-colors resize-none"></textarea>
           </div>
-
         </div>
         <div class="flex gap-3 mt-6">
           <button @click="submitEdit" :disabled="editing" class="px-5 py-2 font-code text-xs tracking-wide bg-warning text-base-100 hover:bg-warning/80 transition-colors disabled:opacity-30">
@@ -1425,8 +1246,6 @@ onMounted(() => {
           <button @click="onTabChange('challenge_list'); editTarget = null" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content hover:border-base-content/30 transition-colors">Annuler</button>
         </div>
       </div>
-      
-      <!-- Preview -->
       <div class="sticky top-6 border border-primary/30 bg-base-100/80 p-6 shadow-2xl backdrop-blur-md">
         <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-6">
           <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Prévisualisation du challenge</span>
@@ -1450,7 +1269,6 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <!-- ── TAB : ROTATIONS (LISTE & GESTION) ── -->
   <div v-if="activeTab === 'rotation_list'" class="flex flex-col gap-4 w-full">
     <div class="flex justify-start">
       <button
@@ -1460,7 +1278,6 @@ onMounted(() => {
         <span>+ Créer une nouvelle rotation</span>
       </button>
     </div>
-
     <div v-if="loadingRotations" class="flex justify-center py-20">
       <span class="loading loading-spinner loading-md text-primary"></span>
     </div>
@@ -1469,8 +1286,6 @@ onMounted(() => {
     </div>
     <div v-else class="flex flex-col gap-1.5">
       <div v-for="rot in rotations" :key="rot.id" class="border border-base-200/50 overflow-hidden">
-        
-        <!-- Ligne de la rotation -->
         <div
           @click="selectRotation(rot); expandedRotation = expandedRotation === rot.id ? null : rot.id; selectedChallengesToAddToRot = []; selectedChallengesToRemoveFromRot = []; availableSearchQuery = ''; expandedRotCategory = null"
           class="flex items-center gap-3 px-4 py-3 cursor-pointer select-none hover:bg-base-300/40 transition-colors duration-150"
@@ -1486,11 +1301,7 @@ onMounted(() => {
           <button class="font-text text-xs text-info hover:text-info/70 px-1 shrink-0" @click.stop="openEditRotModal(rot)" title="Modifier">Modifier</button>
           <button class="font-text text-xs text-error hover:text-error/70 px-1 shrink-0" @click.stop="deleteRotation(rot.id, rot.name)" title="Supprimer">Supprimer</button>
         </div>
-
-        <!-- Section Dépliée : Gestion des ajouts / retraits de challenges -->
         <div v-if="expandedRotation === rot.id" class="bg-base-200/20 border-t border-base-200/50 p-4 animate-fade-in grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          <!-- Colonne Gauche : Catégories et Lazy Loading des challenges de rotation -->
           <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between">
               <p class="font-code text-[10px] uppercase text-base-content/40">
@@ -1498,17 +1309,13 @@ onMounted(() => {
                 <span class="text-primary font-bold ml-1">({{ totalAvailableRotationsCount }})</span>
               </p>
             </div>
-            
             <input
               v-model="availableSearchQuery"
               type="text"
               placeholder="Rechercher par nom..."
               class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-1.5 font-code text-xs text-base-content"
             />
-
             <div class=" overflow-y-auto border border-base-300 p-2 flex flex-col gap-1.5 bg-base-100">
-              
-              <!-- Recherche globale -->
               <template v-if="availableSearchQuery.trim()">
                 <div v-if="loadingCategoryChallenges" class="flex justify-center py-4"><span class="loading loading-spinner loading-xs text-primary"></span></div>
                 <div v-else-if="!filteredSearchedChallenges.length" class="text-center py-4 font-code text-xs text-base-content/25">Aucun challenge trouvé</div>
@@ -1528,8 +1335,6 @@ onMounted(() => {
                   </span>
                 </div>
               </template>
-
-              <!-- Affichage par catégories (Lazy Loading) -->
               <template v-else>
                 <div v-if="!categories.length" class="text-center py-4 font-code text-xs text-base-content/25">Aucune catégorie disponible</div>
                 
@@ -1545,8 +1350,6 @@ onMounted(() => {
                       <span class="font-code text-xs font-bold text-base-content">{{ cat.name }}</span>
                     </div>
                   </div>
-
-                  <!-- Liste des challenges de la catégorie -->
                   <div v-if="expandedRotCategory === cat.id" class="p-2 flex flex-col gap-1.5 bg-base-100/50">
                     <div v-if="loadingCategoryChallenges" class="flex justify-center py-4"><span class="loading loading-spinner loading-xs text-primary"></span></div>
                     <div v-else-if="!rotationCategoryChallenges[cat.id]?.filter(ch => !challengesInRot.has(ch.id)).length" class="text-center py-3 text-xs text-base-content/50 font-code">
@@ -1571,7 +1374,6 @@ onMounted(() => {
                 </div>
               </template>
             </div>
-
             <button
               v-if="selectedChallengesToAddToRot.length > 0"
               @click="addSelectedToRot"
@@ -1580,8 +1382,6 @@ onMounted(() => {
               Ajouter la sélection ({{ selectedChallengesToAddToRot.length }})
             </button>
           </div>
-
-          <!-- Colonne Droite : Challenges déjà inclus dans la rotation -->
           <div class="flex flex-col gap-2">
             <p class="font-code text-[10px] uppercase text-base-content/40 mb-2">
               Challenges dans la rotation <span class="text-base-content/25 ml-1">{{ rotationChallenges.length }}</span>
@@ -1600,7 +1400,6 @@ onMounted(() => {
                 <span class="text-[10px] opacity-60">{{ selectedChallengesToRemoveFromRot.includes(c.id) ? '✓ Sélectionné' : 'Retirer' }}</span>
               </div>
             </div>
-
             <button
               v-if="selectedChallengesToRemoveFromRot.length > 0"
               @click="removeSelectedFromRot"
@@ -1609,14 +1408,10 @@ onMounted(() => {
               Retirer la sélection ({{ selectedChallengesToRemoveFromRot.length }})
             </button>
           </div>
-
         </div>
-
       </div>
     </div>
   </div>
-
-  <!-- ── TAB : CATÉGORIES (LISTE) ── -->
   <div v-if="activeTab === 'category_list'" class="flex flex-col gap-4 w-full">
     <div class="flex justify-start">
       <button
@@ -1626,7 +1421,6 @@ onMounted(() => {
         <span>+ Créer une nouvelle catégorie</span>
       </button>
     </div>
-
     <div v-if="loadingCategories" class="flex justify-center py-20">
       <span class="loading loading-spinner loading-md text-primary"></span>
     </div>
@@ -1657,7 +1451,6 @@ onMounted(() => {
             Supprimer
           </button>
         </div>
-
         <div v-if="expandedCategory === cat.id" class="bg-base-200/20 border-t border-base-200/50 p-3 animate-fade-in">
           <div v-if="loadingCategoryChallenges" class="flex justify-center py-4"><span class="loading loading-spinner loading-xs text-primary"></span></div>
           <div v-else-if="!categoryChallenges.length" class="text-center py-3 text-xs text-base-content/50 font-text">Aucun challenge dans cette catégorie.</div>
@@ -1675,12 +1468,7 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
   </div>
-
-  <!-- ── MODALES GLOBAL ── -->
-
-  <!-- MODAL ROTATION -->
   <div v-if="rotModal.isOpen" class="fixed inset-0 z-40 flex items-center justify-center bg-base-300/80 backdrop-blur-sm p-4">
     <div class="bg-base-100 border border-base-300 shadow-2xl max-w-lg w-full p-6 animate-fade-in">
       <div class="flex justify-between items-center mb-6">
@@ -1690,20 +1478,16 @@ onMounted(() => {
         </div>
         <button @click="rotModal.isOpen = false" class="text-base-content/50 hover:text-base-content text-xl leading-none">&times;</button>
       </div>
-
       <div class="flex flex-col gap-4">
         <input v-if="rotModal.mode === 'create'" v-model="rotationForm.name" type="text" placeholder="Semaine 1" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
         <input v-else v-model="editRotForm.name" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input v-if="rotModal.mode === 'create'" v-model="rotationForm.start_time" type="datetime-local" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
           <input v-else v-model="editRotForm.start_time" type="datetime-local" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
-
           <input v-if="rotModal.mode === 'create'" v-model="rotationForm.end_time" type="datetime-local" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
           <input v-else v-model="editRotForm.end_time" type="datetime-local" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
         </div>
       </div>
-
       <div class="flex justify-end gap-3 mt-8">
         <button @click="rotModal.isOpen = false" class="py-2 px-5 border border-base-300 font-code text-xs text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors">Annuler</button>
         <button v-if="rotModal.mode === 'create'" @click="createRotation" :disabled="creatingRotation || !rotationForm.name || !rotationForm.start_time || !rotationForm.end_time" class="py-2 px-5 bg-primary text-base-100 font-code text-xs hover:bg-primary/80 disabled:opacity-50 transition-colors">
@@ -1715,8 +1499,6 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
-  <!-- MODAL CATÉGORIE -->
   <div v-if="catModal.isOpen" class="fixed inset-0 z-40 flex items-center justify-center bg-base-300/80 backdrop-blur-sm p-4">
     <div class="bg-base-100 border border-base-300 shadow-2xl max-w-lg w-full p-6 animate-fade-in">
       <div class="flex justify-between items-center mb-6">
@@ -1726,15 +1508,12 @@ onMounted(() => {
         </div>
         <button @click="catModal.isOpen = false" class="text-base-content/50 hover:text-base-content text-xl leading-none">&times;</button>
       </div>
-
       <div class="flex flex-col gap-4">
         <input v-if="catModal.mode === 'create'" v-model="catForm.name" type="text" placeholder="Nom de la catégorie..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
         <input v-else v-model="editCatForm.name" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full transition-colors" />
-
         <textarea v-if="catModal.mode === 'create'" v-model="catForm.description" rows="3" placeholder="Description de la catégorie..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full resize-none transition-colors"></textarea>
         <textarea v-else v-model="editCatForm.description" rows="3" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm w-full resize-none transition-colors"></textarea>
       </div>
-
       <div class="flex justify-end gap-3 mt-8">
         <button @click="catModal.isOpen = false" class="py-2 px-5 border border-base-300 font-code text-xs text-base-content/70 hover:text-base-content hover:bg-base-200 transition-colors">Annuler</button>
         <button v-if="catModal.mode === 'create'" @click="createCategory" :disabled="creatingCat || !catForm.name" class="py-2 px-5 bg-primary text-base-100 font-code text-xs hover:bg-primary/80 disabled:opacity-50 transition-colors">
@@ -1746,9 +1525,6 @@ onMounted(() => {
       </div>
     </div>
   </div>
-
-
-  <!-- Panel : Historique de soumissions -->
   <Teleport to="body">
     <div v-if="historyPanelOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="historyPanelOpen = false">
       <div class="w-full max-w-3xl max-h-[85vh] bg-base-200 border border-base-300 flex flex-col">
@@ -1848,8 +1624,6 @@ onMounted(() => {
       </div>
     </div>
   </Teleport>
-
-  <!-- Panels & Modales -->
   <PopUpConfirm
     :is-open="confirmModal.isOpen"
     :title="confirmModal.title"

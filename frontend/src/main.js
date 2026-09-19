@@ -5,10 +5,8 @@ import axios from 'axios'
 import './style.css'
 
 
-// Configuration globale pour communiquer avec ton Flask
 axios.defaults.baseURL = 'http://127.0.0.1:9414'
-axios.defaults.withCredentials = true // INDISPENSABLE pour les sessions Flask
-
+axios.defaults.withCredentials = true
 const app = createApp(App)
 app.use(router)
 app.mount('#app')

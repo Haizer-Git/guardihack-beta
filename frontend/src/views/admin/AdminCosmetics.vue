@@ -6,8 +6,6 @@ import { getAssetUrl } from '../../utils/assets'
 
 const activeTab = ref('list')
 const activeKind = ref('AVATAR')
-
-// ─── HELPERS UI ───────────────────────────────────────────────────────────────
 const RARETE_MAP = {
   COMMUN:     'bg-base-300 text-base-content/60 border border-base-300',
   RARE:       'bg-info/15 text-info border border-info/30',
@@ -15,10 +13,6 @@ const RARETE_MAP = {
   LEGENDARY:  'bg-warning/15 text-warning border border-warning/30',
 }
 const rareteClass = r => RARETE_MAP[r] ?? 'bg-base-300 text-base-content/60 border border-base-300'
-
-// ════════════════════════════════════════════════════════
-// COSMÉTIQUES & RECHERCHE TAB LISTE
-// ════════════════════════════════════════════════════════
 const cosmetics        = ref([])
 const loadingCosmetics = ref(false)
 const expandedCosmetic = ref(null)
@@ -26,7 +20,6 @@ const search           = ref('')
 const filterType       = ref('')
 const sortKey          = ref('name')
 const sortDir          = ref('asc')
-
 const filteredCosmetics = computed(() => {
   return cosmetics.value.filter(c => {
     const matchesSearch = !search.value.trim() || 
@@ -34,10 +27,28 @@ const filteredCosmetics = computed(() => {
       c.description.toLowerCase().includes(search.value.trim().toLowerCase())
     
     const matchesType = !filterType.value || c.type === filterType.value
-
     return matchesSearch && matchesType
   })
 })
+const assignModalOpen = ref(false)
+const targetCosmetic  = ref(null)
+const assignQuery     = ref('')
+const assignResults   = ref([])
+const assignSearching = ref(false)
+const assigning       = ref(false)
+let assignDebounceTimer = null
+const explorerOpen     = ref(false)
+const explorerStep     = ref('root')
+const explorerCategory = ref(null)
+const explorerSubtype  = ref(null)
+const explorerIcons    = ref([])
+const loadingIcons     = ref(false)
+const createDefaults = { type: 'AVATAR', name: '', description: '', rarete: 'COMMUN', exclu: false, icon_id: null, icon_url: '' }
+const createForm = reactive({ ...createDefaults })
+const creating   = ref(false)
+const editTarget = ref(null)
+const editForm   = reactive({ type: '', name: '', description: '', rarete: 'COMMUN', exclu: false, icon_id: null, icon_url: '' })
+const editing    = ref(false)
 
 async function fetchCosmetics() {
   loadingCosmetics.value = true
@@ -50,11 +61,9 @@ async function fetchCosmetics() {
     loadingCosmetics.value = false
   }
 }
-
 function toggleCosmetic(id) {
   expandedCosmetic.value = expandedCosmetic.value === id ? null : id
 }
-
 async function deleteCosmetic(id, name) {
   if (!confirm(`Supprimer le cosmétique "${name}" ? Action irréversible.`)) return
   try {
@@ -66,7 +75,6 @@ async function deleteCosmetic(id, name) {
     showToast(e.response?.data?.message ?? 'Erreur suppression', 'error')
   }
 }
-
 function setSort(key) {
   if (sortKey.value === key) {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
@@ -81,32 +89,18 @@ function setSort(key) {
     return 0
   })
 }
-
-// ════════════════════════════════════════════════════════
-// MODALE D'ATTRIBUTION / RETRAIT MANUEL
-// ════════════════════════════════════════════════════════
-const assignModalOpen = ref(false)
-const targetCosmetic  = ref(null)
-const assignQuery     = ref('')
-const assignResults   = ref([])
-const assignSearching = ref(false)
-const assigning       = ref(false)
-let assignDebounceTimer = null
-
 function openAssignModal(c) {
   targetCosmetic.value = c
   assignQuery.value = ''
   assignResults.value = []
   assignModalOpen.value = true
 }
-
 function onAssignQueryInput() {
   clearTimeout(assignDebounceTimer)
   const q = assignQuery.value.trim()
   if (!q) { assignResults.value = []; return }
   assignDebounceTimer = setTimeout(() => searchAssignUsers(q), 250)
 }
-
 async function searchAssignUsers(q) {
   assignSearching.value = true
   try {
@@ -118,7 +112,6 @@ async function searchAssignUsers(q) {
     assignSearching.value = false
   }
 }
-
 async function toggleUserCosmetic(user, assign) {
   if (!targetCosmetic.value) return
   assigning.value = true
@@ -137,17 +130,6 @@ async function toggleUserCosmetic(user, assign) {
     assigning.value = false
   }
 }
-
-// ════════════════════════════════════════════════════════
-// EXPLORATEUR D'ICÔNES POUR LA CRÉATION / MODIFICATION
-// ════════════════════════════════════════════════════════
-const explorerOpen     = ref(false)
-const explorerStep     = ref('root')
-const explorerCategory = ref(null)
-const explorerSubtype  = ref(null)
-const explorerIcons    = ref([])
-const loadingIcons     = ref(false)
-
 async function openExplorer() {
   explorerOpen.value = true
   explorerStep.value = 'root'
@@ -155,7 +137,6 @@ async function openExplorer() {
   explorerSubtype.value = null
   explorerIcons.value = []
 }
-
 function selectCategory(cat) {
   explorerCategory.value = cat
   if (cat === 'BADGE') {
@@ -165,12 +146,10 @@ function selectCategory(cat) {
     explorerStep.value = 'cosmetic_sub'
   }
 }
-
 function selectCosmeticSubtype(sub) {
   explorerSubtype.value = sub
   loadIconsForExplorer(sub)
 }
-
 async function loadIconsForExplorer(type) {
   loadingIcons.value = true
   try {
@@ -184,7 +163,6 @@ async function loadIconsForExplorer(type) {
     loadingIcons.value = false
   }
 }
-
 function explorerBack() {
   if (explorerStep.value === 'grid') {
     if (explorerCategory.value === 'BADGE') {
@@ -199,7 +177,6 @@ function explorerBack() {
     explorerCategory.value = null
   }
 }
-
 function pickIcon(icon) {
   createForm.icon_id = icon.id
   createForm.icon_url = icon.filepath
@@ -207,18 +184,11 @@ function pickIcon(icon) {
   editForm.icon_url = icon.filepath
   explorerOpen.value = false
 }
-
-// ── Création ──────────────────────────────────────────────────────────────────
-const createDefaults = { type: 'AVATAR', name: '', description: '', rarete: 'COMMUN', exclu: false, icon_id: null, icon_url: '' }
-const createForm = reactive({ ...createDefaults })
-const creating   = ref(false)
-
 function openCreate(kind) {
   activeKind.value = kind
   Object.assign(createForm, { ...createDefaults, type: kind })
   activeTab.value = 'create'
 }
-
 async function submitCreate() {
   if (!createForm.name || !createForm.description || !createForm.rarete) {
     showToast('Tous le nom, la description et la rareté sont requis', 'error'); return
@@ -236,7 +206,6 @@ async function submitCreate() {
       exclu: createForm.exclu,
       icon_id: createForm.icon_id
     })
-
     await fetchCosmetics()
     showToast(`${createForm.type === 'AVATAR' ? 'Avatar' : 'Bannière'} "${createForm.name}" créé(e) !`)
     Object.assign(createForm, { ...createDefaults, type: activeKind.value })
@@ -247,12 +216,6 @@ async function submitCreate() {
     creating.value = false
   }
 }
-
-// ── Modification ───────────────────────────────────────────────────────────────
-const editTarget = ref(null)
-const editForm   = reactive({ type: '', name: '', description: '', rarete: 'COMMUN', exclu: false, icon_id: null, icon_url: '' })
-const editing    = ref(false)
-
 function openEdit(c) {
   editTarget.value   = c.id
   activeTab.value    = 'edit'
@@ -266,7 +229,6 @@ function openEdit(c) {
     icon_url:    c.icon_url    ?? '',
   })
 }
-
 async function submitEdit() {
   if (!editForm.name || !editForm.description || !editForm.rarete) {
     showToast('Tous les champs obligatoires sont requis', 'error'); return
@@ -283,9 +245,7 @@ async function submitEdit() {
     if (editForm.icon_id) {
       payload.new_icon_id = editForm.icon_id
     }
-
     await axios.post(`/api/admin/cosmetic/${editTarget.value}/modify`, payload)
-
     showToast('Cosmétique modifié !')
     activeTab.value  = 'list'
     editTarget.value = null
@@ -309,8 +269,6 @@ onMounted(() => { fetchCosmetics() })
     </div>
     <span class="font-code text-sm text-base-content/50 border border-secondary px-2 py-1">{{ cosmetics.length }} COSMÉTIQUE{{ cosmetics.length > 1 ? 'S' : '' }}</span>
   </div>
-
-  <!-- Onglets -->
   <div class="flex gap-0 border-b border-base-300 mb-6">
     <button
       v-for="tab in [
@@ -331,16 +289,12 @@ onMounted(() => { fetchCosmetics() })
       ]"
     >{{ tab.label }}</button>
   </div>
-
-  <!-- ── TAB : LISTE ── -->
   <div v-if="activeTab === 'list'" class="flex flex-col gap-4">
     <div class="flex items-center justify-between gap-2 flex-wrap">
       <button @click="openCreate('AVATAR')" class="bg-primary text-base-100 hover:bg-primary/80 px-4 py-2 font-code text-xs font-bold transition-colors shadow-sm">
         <span>+ Créer un nouveau cosmétique</span>
       </button>
     </div>
-
-    <!-- Barre de recherche et filtres -->
     <div class="flex items-center gap-2 flex-wrap mb-2">
       <div class="relative flex-1 min-w-48">
         <span class="absolute left-3 top-1/2 -translate-y-1/2 font-code text-base-content/30 text-xs select-none">⌕</span>
@@ -360,7 +314,6 @@ onMounted(() => { fetchCosmetics() })
         <option value="BANNER">Bannière</option>
       </select>
     </div>
-
     <div class="border border-base-300 overflow-hidden flex flex-col" style="max-height: calc(100vh - 220px);">
       <div class="grid grid-cols-[1fr_2.5fr_1.5fr_1.5fr_1fr_120px] bg-base-200 border-b border-base-300 shrink-0">
         <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40">Aperçu</div>
@@ -369,7 +322,6 @@ onMounted(() => { fetchCosmetics() })
         </button>
         <div class="px-4 py-2.5 font-code text-[10px] uppercase tracking-widest text-base-content/40 text-right">Actions</div>
       </div>
-
       <div class="flex-1 overflow-y-auto">
         <div v-if="loadingCosmetics" class="flex justify-center py-16"><span class="loading loading-spinner text-primary"></span></div>
         <div v-else-if="!filteredCosmetics.length" class="flex justify-center py-10"><span class="font-code text-xs text-base-content/25">Aucun cosmétique trouvé</span></div>
@@ -391,12 +343,8 @@ onMounted(() => { fetchCosmetics() })
                 <button class="font-text text-xs text-error hover:text-error/70 px-1" @click="deleteCosmetic(c.id, c.name)" title="Supprimer">Supprimer</button>
               </div>
             </div>
-
-            <!-- Accordéon de détails repensé -->
             <div v-if="expandedCosmetic === c.id" class="border-b border-base-300 bg-base-300/50 p-6">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                
-                <!-- Colonne 1 : Aperçu et Infos Générales -->
                 <div class="flex flex-col gap-4">
                   <div class="flex items-center gap-4">
                     <div class="w-16 h-16 bg-base-100 border border-base-300 flex items-center justify-center overflow-hidden shrink-0">
@@ -409,15 +357,12 @@ onMounted(() => { fetchCosmetics() })
                       <span :class="['inline-block mt-1 px-2 py-0.5 text-[10px] font-code uppercase', rareteClass(c.rarete)]">{{ c.rarete }}</span>
                     </div>
                   </div>
-
                   <dl class="grid grid-cols-2 gap-2 text-xs font-code bg-base-100/40 p-3 border border-base-300">
                     <dt class="text-base-content/40">Type</dt><dd class="text-base-content font-medium uppercase text-right">{{ c.type }}</dd>
                     <dt class="text-base-content/40">Exclusif</dt><dd class="text-base-content font-medium text-right">{{ c.exclu ? 'Oui' : 'Non' }}</dd>
                     <dt class="text-base-content/40">En boutique</dt><dd class="font-medium text-right" :class="c.in_active_boutique ? 'text-success' : 'text-base-content/60'">{{ c.in_active_boutique ? 'Oui' : 'Non' }}</dd>
                   </dl>
                 </div>
-
-                <!-- Colonne 2 : Statistiques de possession & d'utilisation -->
                 <div class="flex flex-col gap-4">
                   <p class="font-code text-[10px] tracking-widest uppercase text-primary/70">Statistiques</p>
                   <div class="grid grid-cols-2 gap-3">
@@ -430,14 +375,11 @@ onMounted(() => { fetchCosmetics() })
                       <p class="font-code text-[9px] uppercase tracking-widest text-base-content/40 mt-1">Actif{{ c.active_user_count > 1 ? 's' : '' }}</p>
                     </div>
                   </div>
-
                   <div>
                     <p class="font-code text-[10px] tracking-widest uppercase text-base-content/40 mb-1">Description</p>
                     <p class="text-xs text-base-content/70 bg-base-200/60 border border-base-300 p-3 leading-relaxed">{{ c.description || 'Aucune description.' }}</p>
                   </div>
                 </div>
-
-                <!-- Colonne 3 : Action d'attribution via Modale -->
                 <div class="flex flex-col justify-between h-full bg-base-100/30 p-4 border border-base-300">
                   <div>
                     <p class="font-code text-[10px] tracking-widest uppercase text-primary/70 mb-2">Gestion des attributions</p>
@@ -450,7 +392,6 @@ onMounted(() => { fetchCosmetics() })
                     Gérer les attributions...
                   </button>
                 </div>
-
               </div>
             </div>
           </template>
@@ -458,26 +399,20 @@ onMounted(() => { fetchCosmetics() })
       </div>
     </div>
   </div>
-
-  <!-- ── TAB : CRÉER ── -->
   <div v-if="activeTab === 'create'" class="w-full">
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-      <!-- Formulaire de gauche -->
       <div class="border border-base-300 bg-base-200/40 p-6">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Nouveau cosmétique</p>
         <h2 class="font-titre font-bold text-lg text-base-content mb-6">Créer un cosmétique</h2>
-
         <div class="grid grid-cols-2 gap-2 mb-6">
           <button type="button" @click="createForm.type = 'AVATAR'" :class="['py-2 font-code text-xs border transition-colors', createForm.type === 'AVATAR' ? 'bg-primary text-base-100 border-primary font-bold' : 'bg-base-100 text-base-content/70 border-base-300 hover:text-base-content']">Avatar</button>
           <button type="button" @click="createForm.type = 'BANNER'" :class="['py-2 font-code text-xs border transition-colors', createForm.type === 'BANNER' ? 'bg-primary text-base-100 border-primary font-bold' : 'bg-base-100 text-base-content/70 border-base-300 hover:text-base-content']">Bannière</button>
         </div>
-
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom *</label>
             <input v-model="createForm.name" type="text" placeholder="Nom du cosmétique..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Rareté *</label>
             <select v-model="createForm.rarete" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -487,20 +422,17 @@ onMounted(() => { fetchCosmetics() })
               <option value="LEGENDARY">LÉGENDAIRE</option>
             </select>
           </div>
-
           <div class="border border-base-300/60 bg-base-100/30 p-2.5">
             <label class="flex items-center gap-2 cursor-pointer select-none">
               <input v-model="createForm.exclu" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
               <span class="font-code text-xs text-base-content font-medium">Cosmétique exclusif</span>
             </label>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description *</label>
             <textarea v-model="createForm.description" rows="3" placeholder="Description..." class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content resize-none transition-colors"></textarea>
           </div>
         </div>
-
         <div class="flex gap-3 mt-6">
           <button @click="submitCreate" :disabled="creating || !createForm.name || !createForm.icon_id" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 flex items-center gap-2">
             <span v-if="creating" class="loading loading-xs"></span>
@@ -509,14 +441,11 @@ onMounted(() => { fetchCosmetics() })
           <button @click="activeTab = 'list'" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content transition-colors">Annuler</button>
         </div>
       </div>
-
-      <!-- Explorateur de droite -->
       <div class="border border-primary/30 bg-base-100/80 p-6 shadow-xl">
         <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
           <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Explorateur d'icônes</span>
           <button v-if="explorerStep !== 'root'" @click="explorerBack" class="font-code text-xs text-primary">← Revenir en arrière</button>
         </div>
-
         <div v-if="explorerStep === 'root'" class="grid grid-cols-2 gap-4 py-8">
           <div @click="selectCategory('COSMETIC')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
             <span class="text-3xl mb-2">📁</span>
@@ -527,7 +456,6 @@ onMounted(() => { fetchCosmetics() })
             <span class="font-code text-xs font-bold text-base-content">Badges</span>
           </div>
         </div>
-
         <div v-else-if="explorerStep === 'cosmetic_sub'" class="grid grid-cols-2 gap-4 py-8">
           <div @click="selectCosmeticSubtype('AVATAR')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
             <span class="text-3xl mb-2">📁</span>
@@ -538,7 +466,6 @@ onMounted(() => { fetchCosmetics() })
             <span class="font-code text-xs font-bold text-base-content">Bannières</span>
           </div>
         </div>
-
         <div v-else-if="explorerStep === 'grid'">
           <div v-if="loadingIcons" class="flex justify-center py-12"><span class="loading loading-spinner text-primary"></span></div>
           <div v-else-if="!explorerIcons.length" class="text-center py-12 font-code text-xs text-base-content/40">Aucune icône dans ce dossier.</div>
@@ -556,7 +483,6 @@ onMounted(() => { fetchCosmetics() })
             </div>
           </div>
         </div>
-
         <div class="mt-6 pt-4 border-t border-base-300 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 border border-base-300 bg-base-200 flex items-center justify-center overflow-hidden">
@@ -568,26 +494,20 @@ onMounted(() => { fetchCosmetics() })
       </div>
     </div>
   </div>
-
-  <!-- ── TAB : MODIFIER ── -->
   <div v-if="activeTab === 'edit' && editTarget" class="w-full">
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
-      <!-- Formulaire de gauche -->
       <div class="border border-base-300 bg-base-200/40 p-6">
         <p class="font-code text-[10px] tracking-widest uppercase text-base-content/35 mb-1">Cosmétique #{{ editTarget }}</p>
         <h2 class="font-titre font-bold text-lg text-base-content mb-6">Modifier le cosmétique</h2>
-
         <div class="grid grid-cols-2 gap-2 mb-6">
           <button type="button" @click="editForm.type = 'AVATAR'" :class="['py-2 font-code text-xs border transition-colors', editForm.type === 'AVATAR' ? 'bg-primary text-base-100 border-primary font-bold' : 'bg-base-100 text-base-content/70 border-base-300 hover:text-base-content']">👤 Avatar</button>
           <button type="button" @click="editForm.type = 'BANNER'" :class="['py-2 font-code text-xs border transition-colors', editForm.type === 'BANNER' ? 'bg-primary text-base-100 border-primary font-bold' : 'bg-base-100 text-base-content/70 border-base-300 hover:text-base-content']">🖼️ Bannière</button>
         </div>
-
         <div class="flex flex-col gap-4">
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Nom *</label>
             <input v-model="editForm.name" type="text" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors" />
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Rareté *</label>
             <select v-model="editForm.rarete" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content transition-colors">
@@ -597,20 +517,17 @@ onMounted(() => { fetchCosmetics() })
               <option value="LEGENDARY">LÉGENDAIRE</option>
             </select>
           </div>
-
           <div class="border border-base-300/60 bg-base-100/30 p-2.5">
             <label class="flex items-center gap-2 cursor-pointer select-none">
               <input v-model="editForm.exclu" type="checkbox" class="checkbox checkbox-xs checkbox-primary rounded-none" />
               <span class="font-code text-xs text-base-content font-medium">Cosmétique exclusif</span>
             </label>
           </div>
-
           <div class="flex flex-col gap-1">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40">Description *</label>
             <textarea v-model="editForm.description" rows="3" class="bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-sm text-base-content resize-none transition-colors"></textarea>
           </div>
         </div>
-
         <div class="flex gap-3 mt-6">
           <button @click="submitEdit" :disabled="editing" class="px-5 py-2 font-code text-xs tracking-wide bg-primary text-base-100 hover:bg-primary/80 transition-colors disabled:opacity-30 flex items-center gap-2">
             <span v-if="editing" class="loading loading-xs"></span>
@@ -619,14 +536,11 @@ onMounted(() => { fetchCosmetics() })
           <button @click="activeTab = 'list'; editTarget = null" class="px-5 py-2 font-code text-xs tracking-wide border border-base-300 text-base-content/50 hover:text-base-content transition-colors">Annuler</button>
         </div>
       </div>
-
-      <!-- Explorateur de droite (Modification) -->
       <div class="border border-primary/30 bg-base-100/80 p-6 shadow-xl">
         <div class="flex items-center justify-between border-b border-base-300 pb-3 mb-4">
           <span class="font-code text-[10px] tracking-widest uppercase text-primary font-bold">Explorateur d'icônes</span>
           <button v-if="explorerStep !== 'root'" @click="explorerBack" class="font-code text-xs text-primary">← Revenir en arrière</button>
         </div>
-
         <div v-if="explorerStep === 'root'" class="grid grid-cols-2 gap-4 py-8">
           <div @click="selectCategory('COSMETIC')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
             <span class="text-3xl mb-2">📁</span>
@@ -637,7 +551,6 @@ onMounted(() => { fetchCosmetics() })
             <span class="font-code text-xs font-bold text-base-content">Badges</span>
           </div>
         </div>
-
         <div v-else-if="explorerStep === 'cosmetic_sub'" class="grid grid-cols-2 gap-4 py-8">
           <div @click="selectCosmeticSubtype('AVATAR')" class="border border-base-300 bg-base-200/50 p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-all">
             <span class="text-3xl mb-2">📁</span>
@@ -648,7 +561,6 @@ onMounted(() => { fetchCosmetics() })
             <span class="font-code text-xs font-bold text-base-content">Bannières</span>
           </div>
         </div>
-
         <div v-else-if="explorerStep === 'grid'">
           <div v-if="loadingIcons" class="flex justify-center py-12"><span class="loading loading-spinner text-primary"></span></div>
           <div v-else-if="!explorerIcons.length" class="text-center py-12 font-code text-xs text-base-content/40">Aucune icône dans ce dossier.</div>
@@ -666,7 +578,6 @@ onMounted(() => { fetchCosmetics() })
             </div>
           </div>
         </div>
-
         <div class="mt-6 pt-4 border-t border-base-300 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 border border-base-300 bg-base-200 flex items-center justify-center overflow-hidden">
@@ -678,8 +589,6 @@ onMounted(() => { fetchCosmetics() })
       </div>
     </div>
   </div>
-
-  <!-- ── MODALE GESTION DES ATTRIBUTIONS ── -->
   <Teleport to="body">
     <div v-if="assignModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @click.self="assignModalOpen = false">
       <div class="w-full max-w-lg bg-base-200 border border-base-300 flex flex-col shadow-2xl p-6">
@@ -690,7 +599,6 @@ onMounted(() => { fetchCosmetics() })
           </div>
           <button @click="assignModalOpen = false" class="font-code text-xs text-error hover:text-error/70">Fermer</button>
         </div>
-
         <div class="flex flex-col gap-4">
           <div class="relative">
             <label class="font-code text-[10px] uppercase tracking-widest text-base-content/40 block mb-1">Rechercher un utilisateur</label>
@@ -701,8 +609,6 @@ onMounted(() => { fetchCosmetics() })
               placeholder="Nom d'utilisateur..."
               class="w-full bg-base-100 border border-base-300 focus:border-primary outline-none px-3 py-2 font-code text-xs text-base-content"
             />
-            
-            <!-- Liste des résultats de recherche -->
             <div v-if="assignResults.length > 0" class="absolute z-10 top-full left-0 right-0 mt-1 bg-base-100 border border-base-300 shadow-lg max-h-48 overflow-y-auto">
               <div
                 v-for="u in assignResults"

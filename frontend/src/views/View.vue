@@ -2,33 +2,9 @@
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import * as echarts from 'echarts'
 
-// --- ÉTAT ---
-const viewMode = ref('global') // 'global' ou 'teams'
+const viewMode = ref('global')
 const chartRef = ref(null)
 let chartInstance = null
-
-// --- DONNÉES SIMULÉES ---
-const top10Users = ref([
-  { id: 1, username: 'Vex_Root', score: 2500, lvl: 42, color: '#ffd700', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Vex_Root' },
-  { id: 2, username: '0xGhost', score: 2100, lvl: 38, color: '#c0c0c0', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=0xGhost' },
-  { id: 3, username: 'CyberSlayer', score: 1850, lvl: 35, color: '#cd7f32', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=CyberSlayer' },
-  { id: 4, username: 'Alice_In_Pwn', score: 1600, lvl: 30, color: '#ff3366', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Alice' },
-  { id: 5, username: 'Bob_The_Hacker', score: 1400, lvl: 28, color: '#33cc33', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Bob' },
-  { id: 6, username: 'NullPointer', score: 1250, lvl: 25, color: '#cccc00', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Null' },
-  { id: 7, username: 'Root_Me', score: 1100, lvl: 22, color: '#ff9900', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Root' },
-  { id: 8, username: 'ScriptKiddie', score: 950, lvl: 18, color: '#9933ff', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Script' },
-  { id: 9, username: 'Flag_Hunter', score: 800, lvl: 15, color: '#3399ff', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Flag' },
-  { id: 10, username: 'BufferOver', score: 750, lvl: 14, color: '#cc3300', avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Buffer' },
-])
-
-const teams = ref([
-  { id: 1, name: 'Red Team', score: 8500, members: 5, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=redteam', color: 'text-error' },
-  { id: 2, name: 'Blue Squad', score: 7200, members: 5, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=blueteam', color: 'text-info' },
-  { id: 3, name: 'Green Hackers', score: 6800, members: 5, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=greenteam', color: 'text-success' },
-  { id: 4, name: 'Purple Crew', score: 5900, members: 5, image: 'https://api.dicebear.com/7.x/bottts/svg?seed=purpleteam', color: 'text-secondary' },
-])
-
-// --- CONFIGURATION ECHARTS ---
 const chartOptions = computed(() => {
   const startTime = new Date('2026-04-21T09:00:00').getTime()
   return {
@@ -89,27 +65,22 @@ const chartOptions = computed(() => {
     })
   }
 })
-
-// --- LOGIQUE GRAPHIQUE ---
 const initChart = () => {
   if (chartRef.value) {
     if (!chartInstance) chartInstance = echarts.init(chartRef.value)
     chartInstance.setOption(chartOptions.value)
   }
 }
-
 const resizeChart = () => { if (chartInstance) chartInstance.resize() }
 
 onMounted(() => {
   initChart()
   window.addEventListener('resize', resizeChart)
 })
-
 onUnmounted(() => {
   window.removeEventListener('resize', resizeChart)
   if (chartInstance) chartInstance.dispose()
 })
-
 watch(viewMode, async (newVal) => {
   if (newVal === 'global') {
     await nextTick()
@@ -120,13 +91,11 @@ watch(viewMode, async (newVal) => {
 
 <template>
   <div class="w-full animate-fade-in pb-20 px-4">
-    
     <div class="mb-10">
       <h1 class="block w-full text-center text-3xl font-cyber font-bold bg-primary text-base-100 py-3 uppercase tracking-widest shadow-lg">
         Scoreboard
       </h1>
     </div>
-
     <div class="flex justify-center mb-12 w-full">
       <div class="tabs tabs-boxed bg-base-300 p-1">
         <button 
@@ -143,47 +112,40 @@ watch(viewMode, async (newVal) => {
         </button>
       </div>
     </div>
-
     <div v-if="viewMode === 'global'" class="w-full animate-fade-in flex flex-col items-center max-w-7xl mx-auto">
-      
       <div class="w-full bg-base-200/50 pt-4 pb-2 px-2 rounded-xl border border-base-300 mb-16 shadow-2xl">
         <div ref="chartRef" class="w-full h-[450px]"></div>
       </div>
-
       <div class="flex justify-center items-end gap-4 md:gap-10 w-full mb-20 pt-4">
         
         <div class="flex flex-col items-center gap-2">
           <div class="card-neumorph second flex flex-col items-center justify-center p-4 text-center relative overflow-hidden"
-               :style="{ backgroundImage: `linear-gradient(rgba(30,30,30,0.85), rgba(30,30,30,0.95)), url(${top10Users[1].avatar})`, backgroundSize: 'cover' }">
+              :style="{ backgroundImage: `linear-gradient(rgba(30,30,30,0.85), rgba(30,30,30,0.95)), url(${top10Users[1].avatar})`, backgroundSize: 'cover' }">
             <div class="text-3xl mb-1">🥈</div>
             <div class="font-bold text-sm truncate w-full px-1 text-white">{{ top10Users[1].username }}</div>
             <div class="text-gray-400 font-mono text-xs">{{ top10Users[1].score }} pts</div>
           </div>
           <div class="text-xs font-cyber opacity-60">RANK #2</div>
         </div>
-
         <div class="flex flex-col items-center gap-2 z-10">
           <div class="card-neumorph first flex flex-col items-center justify-center p-4 text-center relative overflow-hidden"
-               :style="{ backgroundImage: `linear-gradient(rgba(20,20,20,0.8), rgba(20,20,20,0.9)), url(${top10Users[0].avatar})`, backgroundSize: 'cover' }">
+              :style="{ backgroundImage: `linear-gradient(rgba(20,20,20,0.8), rgba(20,20,20,0.9)), url(${top10Users[0].avatar})`, backgroundSize: 'cover' }">
             <div class="text-6xl mb-2 animate-pulse">👑</div>
             <div class="font-black text-lg truncate w-full px-1 text-white">{{ top10Users[0].username }}</div>
             <div class="text-yellow-400 font-mono text-lg font-bold">{{ top10Users[0].score }} pts</div>
           </div>
           <div class="text-sm font-cyber text-yellow-400 font-bold">CHAMPION #1</div>
         </div>
-
         <div class="flex flex-col items-center gap-2">
           <div class="card-neumorph third flex flex-col items-center justify-center p-4 text-center relative overflow-hidden"
-               :style="{ backgroundImage: `linear-gradient(rgba(30,30,30,0.85), rgba(30,30,30,0.95)), url(${top10Users[2].avatar})`, backgroundSize: 'cover' }">
+              :style="{ backgroundImage: `linear-gradient(rgba(30,30,30,0.85), rgba(30,30,30,0.95)), url(${top10Users[2].avatar})`, backgroundSize: 'cover' }">
             <div class="text-3xl mb-1">🥉</div>
             <div class="font-bold text-sm truncate w-full px-1 text-white">{{ top10Users[2].username }}</div>
             <div class="text-orange-400 font-mono text-xs">{{ top10Users[2].score }} pts</div>
           </div>
           <div class="text-xs font-cyber opacity-60">RANK #3</div>
         </div>
-
       </div>
-
       <div class="w-full bg-base-200/30 rounded-2xl border border-white/5 overflow-hidden shadow-xl">
         <table class="table w-full">
           <thead>
@@ -212,14 +174,13 @@ watch(viewMode, async (newVal) => {
         </table>
       </div>
     </div>
-
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full animate-fade-in px-4 max-w-7xl mx-auto">
       <div v-for="(team, index) in teams" :key="team.id" 
         class="card bg-base-200/50 border border-base-300 hover:border-primary/50 transition-all hover:shadow-2xl overflow-hidden group">
         <figure class="relative h-32 overflow-hidden bg-black">
           <img :src="team.image" :alt="team.name" class="w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-all group-hover:scale-110" />
           <div class="absolute inset-0 flex items-center justify-center">
-             <span class="text-4xl filter drop-shadow-lg">{{ index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1) }}</span>
+            <span class="text-4xl filter drop-shadow-lg">{{ index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '#' + (index + 1) }}</span>
           </div>
         </figure>
         <div class="card-body p-6">
@@ -240,42 +201,32 @@ watch(viewMode, async (newVal) => {
         </div>
       </div>
     </div>
-
   </div>
 </template>
-
 <style scoped>
 .font-cyber { font-family: 'Orbitron', sans-serif; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* NEUMORPHISM PODIUM */
 .card-neumorph {
   width: 160px;
   height: 210px;
   border-radius: 24px;
   background-color: #1a1a1a;
-  box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.4),
-             -5px -5px 15px rgba(255, 255, 255, 0.02);
+  box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.4), -5px -5px 15px rgba(255, 255, 255, 0.02);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   border: 1px solid rgba(255,255,255,0.05);
 }
-
 .card-neumorph.first {
   width: 200px;
   height: 280px;
   border: 2px solid #ffd700;
   box-shadow: 0px 0px 40px rgba(255, 215, 0, 0.1);
 }
-
 .card-neumorph:hover {
   transform: translateY(-10px) scale(1.02);
 }
-
 .second { border-bottom: 6px solid #c0c0c0; }
 .third { border-bottom: 6px solid #cd7f32; }
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .card-neumorph { width: 110px; height: 160px; }
   .card-neumorph.first { width: 130px; height: 200px; }

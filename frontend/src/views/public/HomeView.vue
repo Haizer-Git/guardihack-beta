@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 const router = useRouter()
 </script>
-
 <template>
   <svg style="position: absolute; width: 0; height: 0;">
     <filter width="3000%" x="-1000%" height="3000%" y="-1000%" id="unopaq">
@@ -12,31 +11,24 @@ const router = useRouter()
                 0 0 0 3 0"></feColorMatrix>
     </filter>
   </svg>
-
   <div class="w-full animate-fade-in z-10">
-
     <section class="min-h-[75vh] flex flex-col items-center justify-center overflow-hidden px-4">
       <div class="relative z-10 flex flex-col items-center gap-6 text-center max-w-3xl">
-
         <img src="../../assets/V2.2-Sombre.png" alt="Logo GuardiHack"
           class=" h-auto w-auto object-contain mix-blend-screen drop-shadow-[0_0_35px_rgba(var(--p),0.3)]"
           style="animation-duration: 4s;" />
-
         <h1 class="text-6xl md:text-8xl font-black tracking-tighter font-titre uppercase">
           GuardiHack
         </h1>
-
         <div
           class="flex flex-wrap justify-center gap-2 text-xs font-stitre px-3 py-1.5 border border-primary/20 bg-primary/5 text-primary tracking-widest uppercase">
           <span>📍 Paris</span> • <span>📍 Lyon</span> • <span>📍 Bordeaux</span>
         </div>
-
         <p class="text-base md:text-lg text-base-content/70 font-text leading-relaxed">
           La plateforme d'entraînement de type <span class="text-primary font-bold">CTF & Cyber Challenges</span>
           exclusive et réservée aux étudiants de la <span class="text-white font-semibold">Guardia Cybersecurity
             School</span>.
         </p>
-
         <div class="mt-8 relative group">
           <button @click="router.push('/rules')" class="custom-cyber-btn">
             <div class="a l"></div>
@@ -48,7 +40,6 @@ const router = useRouter()
         </div>
       </div>
     </section>
-
     <section class="py-20 px-6 bg-base-200/40 backdrop-blur-md border border-base-300">
       <div class="max-w-6xl mx-auto">
         <div class="text-center mb-16">
@@ -57,9 +48,7 @@ const router = useRouter()
             <span class="inline-block">À propos</span>
           </h2>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
           <div
             class="bg-base-300/70 backdrop-blur-sm rounded-xl p-8 border border-base-100 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 group">
             <div
@@ -72,7 +61,6 @@ const router = useRouter()
               Crypto et le Reverse engineering, affine tes compétences d'analyste et de hacker éthique.
             </p>
           </div>
-
           <div
             class="bg-base-300/70 backdrop-blur-sm rounded-xl p-8 border border-base-100 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 group">
             <div
@@ -85,7 +73,6 @@ const router = useRouter()
               étudiant et mesure-toi aux talents des campus de Paris, Lyon et Bordeaux.
             </p>
           </div>
-
           <div
             class="bg-base-300/70 backdrop-blur-sm rounded-xl p-8 border border-base-100 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 group">
             <div
@@ -98,7 +85,6 @@ const router = useRouter()
               général de l'école et montre qui domine la matrice des campus.
             </p>
           </div>
-
         </div>
       </div>
     </section>
@@ -111,7 +97,6 @@ const router = useRouter()
             <span class="inline-block">Les catégories</span>
           </h2>
         </div>
-
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 text-center font-mono text-xs">
           <div class="p-6 bg-base-300/40 border border-base-200 hover:border-primary/20 transition-all">
             <div class="text-2xl mb-2">🌐</div>
@@ -137,11 +122,8 @@ const router = useRouter()
         </div>
       </div>
     </section>
-    
-
     <section class="py-20 px-6 bg-base-200/40 backdrop-blur-md border-y border-base-300">
       <div class="max-w-6xl mx-auto flex flex-col gap-20">
-
         <div>
           <h2 class="text-2xl md:text-3xl font-bold uppercase tracking-widest font-stitre text-white text-center mb-12">
             Avec le soutien de</h2>
@@ -154,7 +136,6 @@ const router = useRouter()
               BDE Cyber</div>
           </div>
         </div>
-
         <div>
           <h2 class="text-2xl md:text-3xl font-bold uppercase tracking-widest font-stitre text-white text-center mb-12">
             Nos partenaires</h2>
@@ -170,10 +151,8 @@ const router = useRouter()
               Partenaire C</div>
           </div>
         </div>
-
       </div>
     </section>
-
     <section class="py-20 px-6">
       <div class="max-w-5xl mx-auto">
         <div class="text-center mb-16">
@@ -182,9 +161,7 @@ const router = useRouter()
             <span class="inline-block">L'équipe</span>
           </h2>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
           <div
             class="flex items-center gap-5 bg-base-300/60 backdrop-blur-sm rounded-xl p-6 border border-base-200 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30">
             <div
@@ -196,7 +173,6 @@ const router = useRouter()
               <p class="text-primary font-mono text-xs uppercase tracking-widest">Core Developer</p>
             </div>
           </div>
-
           <div
             class="flex items-center gap-5 bg-base-300/60 backdrop-blur-sm rounded-xl p-6 border border-base-200 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30">
             <div
@@ -208,7 +184,6 @@ const router = useRouter()
               <p class="text-primary font-mono text-xs uppercase tracking-widest">Core Developer</p>
             </div>
           </div>
-
           <div
             class="flex items-center gap-5 bg-base-300/60 backdrop-blur-sm rounded-xl p-6 border border-base-200 shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30">
             <div
@@ -220,11 +195,9 @@ const router = useRouter()
               <p class="text-primary font-mono text-xs uppercase tracking-widest">Core Developer</p>
             </div>
           </div>
-
         </div>
       </div>
     </section>
-
     <section class="py-20 px-6 bg-base-200/40 backdrop-blur-md border-t border-base-300">
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-16">
@@ -233,7 +206,6 @@ const router = useRouter()
             <span class="inline-block">Nous contacter</span>
           </h2>
         </div>
-
         <div
           class="bg-gradient-to-br from-base-300 via-base-300 to-base-200/40 rounded-xl border border-base-100 shadow-2xl p-1">
           <form @submit.prevent class="flex flex-col gap-4 bg-base-300/90 rounded-xl p-6 md:p-8">
@@ -245,7 +217,6 @@ const router = useRouter()
             </div>
             <textarea rows="4" placeholder="Un bug ? Une suggestion de challenge ? Un flag cassé ?..."
               class="bg-base-100 border border-base-200 outline-none text-white px-4 py-3 text-sm font-mono rounded-lg resize-none transition-all duration-200 focus:border-primary/50 placeholder:text-neutral-500"></textarea>
-
             <button type="submit"
               class="self-end px-6 py-2.5 bg-primary text-base-100 font-mono text-xs tracking-widest uppercase font-bold rounded-md shadow-md transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]">
               🚀 Émettre le signal
@@ -254,20 +225,16 @@ const router = useRouter()
         </div>
       </div>
     </section>
-
   </div>
 </template>
 
 <style scoped>
-/* === CONFIGURATION & STYLES DU BOUTON CUSTOM CYBER === */
 .custom-cyber-btn {
   position: relative;
   cursor: pointer;
   border: none;
   width: 170px;
-  /* Élargi pour accueillir confortablement "EXPLORER" */
   height: 48px;
-  /* Réhaussé légèrement pour un look asymétrique premium */
   background: #111111;
   color: #ffffff;
   display: flex;
@@ -275,18 +242,14 @@ const router = useRouter()
   justify-content: center;
   transition: all 0.3s ease;
 }
-
 .text {
   position: relative;
   z-index: 1;
   transition: color 0.3s;
 }
-
 .custom-cyber-btn:hover .text {
   color: theme('colors.primary');
-  /* Teinte le texte avec la couleur primaire au survol */
 }
-
 .custom-cyber-btn::before {
   content: "";
   position: absolute;
@@ -300,15 +263,12 @@ const router = useRouter()
   background-size: 3px 3px, auto auto;
   transition: 0.3s;
 }
-
 .custom-cyber-btn:hover::before {
   opacity: 0.2;
 }
-
 .a {
   pointer-events: none;
   position: absolute;
-  /* Variables calculées pour s'adapter à la hauteur de 48px */
   --w: 2px;
   --t: -48px;
   --s: calc(var(--t) * -1);
@@ -316,7 +276,6 @@ const router = useRouter()
   --g: #fff0, #fff3 var(--s), #fffa var(--s), #fff, #fffa var(--e),
     #fff3 var(--e), #fff0;
 }
-
 .a::before {
   content: "";
   position: absolute;
@@ -325,7 +284,6 @@ const router = useRouter()
   filter: blur(4px) url(#unopaq);
   z-index: -2;
 }
-
 .a::after {
   content: "";
   position: absolute;
@@ -336,40 +294,27 @@ const router = useRouter()
   z-index: -2;
   transition: 0.3s;
 }
-
 .custom-cyber-btn:hover .a::after {
   opacity: 1;
 }
-
 .l {
   left: -2px;
 }
-
-.r {
-  right: -2px;
-}
-
-.l,
 .r {
   background: linear-gradient(var(--g));
   top: var(--t);
   bottom: var(--t);
   width: var(--w);
+  right: -2px;
 }
-
 .t {
   top: -2px;
 }
-
-.b {
-  bottom: -2px;
-}
-
-.t,
 .b {
   background: linear-gradient(90deg, var(--g));
   left: var(--t);
   right: var(--t);
   height: var(--w);
+    bottom: -2px;
 }
 </style>
