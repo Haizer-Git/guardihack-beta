@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardiHack - Pool Preview</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#06b6d4',      // Turquoise / Cyan lagon
+              secondary: '#f59e0b',    // Sable / Ambre
+              'base-100': '#0b1329',   // Fond sombre marin
+              'base-200': '#131e3a',   // Fond cartes
+              'base-300': '#1e294b',   // Bordures / Contours
+              'base-content': '#f1f5f9'// Texte clair
+            },
+            fontFamily: {
+              code: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+              titre: ['ui-sans-serif', 'system-ui', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-base-100 text-base-content font-code min-h-screen flex flex-col">
+
+    <!-- Barre de navigation des vues de test -->
+    <header class="bg-base-200 border-b border-base-300 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <span class="text-primary font-bold tracking-widest uppercase text-xs">GUARDIHACK // POOL PREVIEW</span>
+        </div>
+        <nav class="flex gap-2">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="px-3 py-1.5 text-xs bg-primary text-base-100 font-bold transition-all">1. Dashboard Global</button>
+            <button onclick="switchTab('bloc1')" id="btn-bloc1" class="px-3 py-1.5 text-xs bg-base-300 text-base-content/70 hover:text-base-content transition-all">2. Bloc 1 (Cours & Terminal)</button>
+            <button onclick="switchTab('bloc2')" id="btn-bloc2" class="px-3 py-1.5 text-xs bg-base-300 text-base-content/70 hover:text-base-content transition-all">3. Bloc 2 (Jeopardy)</button>
+            <button onclick="switchTab('bloc3')" id="btn-bloc3" class="px-3 py-1.5 text-xs bg-base-300 text-base-content/70 hover:text-base-content transition-all">4. Bloc 3 (Boîte Noire)</button>
+        </nav>
+    </header>
+
+    <!-- Conteneur Principal -->
+    <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+
+        <!-- VUE 1 : DASHBOARD GLOBAL -->
+        <section id="tab-dashboard" class="space-y-6 view-section">
+            <div class="flex items-center justify-between border-b border-primary/20 pb-4">
+                <div>
+                    <p class="text-[10px] tracking-[0.18em] uppercase text-secondary/70 mb-1">POOL 2026 // JOUR 01</p>
+                    <h1 class="font-titre font-bold text-2xl tracking-tight">Thématique : Pentest Web & Linux</h1>
+                </div>
+                <div class="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 px-3 py-1.5">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span class="text-xs text-cyan-400 font-bold">SESSION ACTIVE</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Bloc 1 -->
+                <div class="border border-primary/40 bg-base-200 p-5 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-primary"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] uppercase tracking-widest text-primary font-bold">Bloc 01 // Théorie & Labs</span>
+                            <span class="text-xs text-emerald-400 font-bold">COMPLÉTÉ (100%)</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-lg mb-2">Cours & Commandes Linux</h3>
+                        <p class="text-xs text-base-content/60 leading-relaxed mb-6">Apprentissage des bases du terminal, manipulation des flux et mini-exercices interactifs.</p>
+                    </div>
+                    <button onclick="switchTab('bloc1')" class="w-full py-2 bg-primary text-base-100 text-xs font-bold tracking-wider uppercase hover:bg-cyan-400 transition-colors">Accéder au cours →</button>
+                </div>
+
+                <!-- Bloc 2 -->
+                <div class="border border-secondary/40 bg-base-200 p-5 flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-secondary"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] uppercase tracking-widest text-secondary font-bold">Bloc 02 // Pratique</span>
+                            <span class="text-xs text-amber-400 font-bold">EN COURS (4/10)</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-lg mb-2">Challenges Jeopardy</h3>
+                        <p class="text-xs text-base-content/60 leading-relaxed mb-6">Série de 4 niveaux de difficulté croissante. Validez le quota requis pour l'épreuve finale.</p>
+                    </div>
+                    <button onclick="switchTab('bloc2')" class="w-full py-2 bg-secondary text-base-100 text-xs font-bold tracking-wider uppercase hover:bg-amber-400 transition-colors">Lancer les challenges →</button>
+                </div>
+
+                <!-- Bloc 3 -->
+                <div class="border border-base-300 bg-base-200/50 p-5 flex flex-col justify-between relative opacity-60">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-base-content/30"></div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] uppercase tracking-widest text-base-content/40 font-bold">Bloc 03 // Boss Final</span>
+                            <span class="text-xs text-rose-400 font-bold flex items-center gap-1">🔒 VERROUILLÉ</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-lg text-base-content/70 mb-2">Boîte Noire & Write-up</h3>
+                        <p class="text-xs text-base-content/40 leading-relaxed mb-6">Machine unique regroupant toutes les failles de la journée. Exploitation et rapport.</p>
+                    </div>
+                    <button disabled class="w-full py-2 bg-base-300 text-base-content/30 text-xs font-bold tracking-wider uppercase cursor-not-allowed">Requis : 80% du Bloc 2</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VUE 2 : BLOC 1 (COURS & TERMINAL) -->
+        <section id="tab-bloc1" class="space-y-6 view-section hidden">
+            <div class="flex items-center justify-between border-b border-primary/20 pb-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchTab('dashboard')" class="text-xs text-primary hover:underline">← Retour au Dashboard</button>
+                    <span class="text-base-content/30">/</span>
+                    <h1 class="font-titre font-bold text-xl">Bloc 01 : Fondamentaux & Terminal Linux</h1>
+                </div>
+                <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3 py-1">Étape 3 / 5 validée</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="border border-base-300 bg-base-200 p-5 flex flex-col gap-4 text-xs leading-relaxed">
+                    <h2 class="font-titre font-bold text-base text-primary">Introduction aux flux et permissions</h2>
+                    <p>Sur une plage de sable fin ou dans un système Linux, tout est question de structure. Les permissions (chmod, chown) s'apparentent à des vagues qui protègent ou laissent libre d'accès certains dossiers sensibles.</p>
+                    <div class="bg-base-100 p-3 border-l-2 border-primary my-2 font-mono">
+                        <code>Commande clé : ls -la /home/pool_user</code>
+                    </div>
+                    <p>Testez dès à présent vos compétences dans le terminal interactif ci-contre pour valider la manipulation des fichiers cachés.</p>
+                </div>
+
+                <div class="border border-primary/40 bg-slate-950 text-slate-100 p-4 flex flex-col font-mono text-xs shadow-inner h-80">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                        <span class="text-[10px] text-primary tracking-widest uppercase">TERMINAL DE LA POOL // LAGON-01</span>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    </div>
+                    <div class="flex-1 overflow-y-auto space-y-1 text-slate-300">
+                        <p class="text-emerald-400">connection established to sandbox@pool-guardihack</p>
+                        <p>type 'help' to see available commands.</p>
+                        <p class="text-primary mt-2">pool@guardihack:~$ ls -la</p>
+                        <p>total 16</p>
+                        <p>drwxr-xr-x 2 pool pool 4096 Sep 1 08:50 .</p>
+                        <p class="text-cyan-400">-rw-r--r-- 1 pool pool   24 Sep 1 08:50 flag_tutoriel.txt</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-slate-800 flex items-center gap-2">
+                        <span class="text-primary">pool@guardihack:~$</span>
+                        <input type="text" placeholder="Entrez votre commande..." class="bg-transparent outline-none flex-1 text-white placeholder:text-slate-600" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VUE 3 : BLOC 2 (JEOPARDY) -->
+        <section id="tab-bloc2" class="space-y-6 view-section hidden">
+            <div class="flex items-center justify-between border-b border-secondary/20 pb-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchTab('dashboard')" class="text-xs text-secondary hover:underline">← Retour au Dashboard</button>
+                    <span class="text-base-content/30">/</span>
+                    <h1 class="font-titre font-bold text-xl">Bloc 02 : Challenges Jeopardy (Pentest Web)</h1>
+                </div>
+                <div class="text-xs font-bold text-secondary">Quota déblocage Bloc 3 : 3 / 4 validés</div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="border border-emerald-500/40 bg-emerald-500/5 p-4 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 uppercase">EASY</span>
+                            <span class="text-xs text-emerald-400 font-bold">100 PTS</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-sm mb-1">🌊 Marelle SQLi</h3>
+                        <p class="text-[11px] text-base-content/60 mb-4">Injection SQL basique dans le paramètre de recherche de l'hôtel de plage.</p>
+                    </div>
+                    <div class="w-full py-1.5 bg-emerald-500/20 text-emerald-400 text-center text-xs font-bold">VALIDÉ ✓</div>
+                </div>
+
+                <div class="border border-secondary/60 bg-base-200 p-4 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] bg-amber-500/20 text-amber-400 px-2 py-0.5 uppercase">MEDIUM</span>
+                            <span class="text-xs text-secondary font-bold">250 PTS</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-sm mb-1">🏖️ Brise-lames XSS</h3>
+                        <p class="text-[11px] text-base-content/60 mb-4">Exploitation d'une faille XSS stockée dans le livre d'or du maître-nageur.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" placeholder="GHI{...}" class="bg-base-100 border border-base-300 text-xs px-2 py-1 flex-1 outline-none focus:border-secondary text-white" />
+                        <button class="bg-secondary text-base-100 px-3 py-1 text-xs font-bold">OK</button>
+                    </div>
+                </div>
+
+                <div class="border border-base-300 bg-base-200/50 p-4 flex flex-col justify-between opacity-50">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-[9px] bg-rose-500/20 text-rose-400 px-2 py-0.5 uppercase">HARD</span>
+                            <span class="text-xs text-base-content/40 font-bold">500 PTS</span>
+                        </div>
+                        <h3 class="font-titre font-bold text-sm text-base-content/40 mb-1">🦈 Attaque de requin RCE</h3>
+                        <p class="text-[11px] text-base-content/30 mb-4">Exécution de commande à distance via l'upload de photo de vacances.</p>
+                    </div>
+                    <span class="text-[10px] text-rose-400 text-center font-bold">🔒 Nécessite 2 challenges Medium</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- VUE 4 : BLOC 3 (BOITE NOIRE) -->
+        <section id="tab-bloc3" class="space-y-6 view-section hidden">
+            <div class="flex items-center justify-between border-b border-primary/20 pb-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="switchTab('dashboard')" class="text-xs text-primary hover:underline">← Retour au Dashboard</button>
+                    <span class="text-base-content/30">/</span>
+                    <h1 class="font-titre font-bold text-xl">Bloc 03 : Boîte Noire & Soumission du Write-up</h1>
+                </div>
+                <span class="text-xs bg-primary/20 text-primary border border-primary/40 px-3 py-1 font-bold">OBJECTIF FINAL</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="border border-base-300 bg-base-200 p-5 flex flex-col gap-4">
+                    <h2 class="font-titre font-bold text-base text-primary">Cible : L'Atoll Vulnérable</h2>
+                    <p class="text-xs text-base-content/60 leading-relaxed">Cette machine intègre l'ensemble des failles abordées durant la journée. Compromettez le serveur root.</p>
+                    <div class="bg-slate-950 text-slate-200 p-3 text-xs space-y-1 font-mono">
+                        <p>IP Cible : <span class="text-primary font-bold">10.10.50.22</span></p>
+                        <p>Statut : <span class="text-emerald-400">EN LIGNE</span></p>
+                    </div>
+                    <button class="w-full py-2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold uppercase tracking-wider">Redémarrer l'instance ⟳</button>
+                </div>
+
+                <div class="lg:col-span-2 border border-primary/40 bg-base-200 p-5 flex flex-col gap-4">
+                    <h2 class="font-titre font-bold text-base">Rapport d'audit (Write-up)</h2>
+                    <textarea rows="8" placeholder="1. Phase de reconnaissance...&#10;2. Exploitation...&#10;3. Élévation de privilèges..." class="w-full bg-base-100 border border-base-300 p-3 text-xs outline-none focus:border-primary resize-none font-mono text-white"></textarea>
+                    <div class="flex justify-between items-center pt-2">
+                        <span class="text-[10px] text-base-content/40">Format accepté : Markdown ou texte brut.</span>
+                        <button class="px-6 py-2.5 bg-primary text-base-100 text-xs font-bold uppercase tracking-wider hover:bg-cyan-400 transition-colors">Soumettre le Write-up</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Script de navigation des onglets de preview -->
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            // Gestion des styles des boutons de la barre de preview
+            ['dashboard', 'bloc1', 'bloc2', 'bloc3'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                if (t === tabId) {
+                    btn.className = "px-3 py-1.5 text-xs bg-primary text-base-100 font-bold transition-all";
+                } else {
+                    btn.className = "px-3 py-1.5 text-xs bg-base-300 text-base-content/70 hover:text-base-content transition-all";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

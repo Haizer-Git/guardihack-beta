@@ -1,0 +1,122 @@
+summary: Création d'un token par un administrateur
+tags:
+  - Admin/Token
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - preset_id
+        properties:
+          preset_id:
+            type: integer
+            description: ID du preset utilisateur pour lequel créer le token
+            example: 1
+          max_uses:
+            type: integer
+            description: Nombre maximum d'utilisations du token (vide = illimité)
+            example: 5
+          expires_at:
+            type: string
+            format: date-time
+            description: Date et heure d'expiration du token (vide = pas d'expiration)
+            example: "2026-10-01T12:00:00.899491Z"
+
+responses:
+  201:
+    description: Token créé avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            preset_id:
+              type: integer
+              description: ID du preset utilisateur
+            message:
+              type: string
+              example: "Token créé avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              enum:
+                - INVALID_DATA
+                - MISSING_PRESET_ID
+                - INVALID_PRESET_ID
+                - INVALID_FORMAT_DATE
+                - INVALID_EXPIRATION_DATE
+                - INVALID_MAX_USES
+              example: "INVALID_EXPIRATION_DATE"
+            message:
+              type: string
+              enum:
+                - "Les données doivent être un dictionnaire."
+                - "Le champ 'preset_id' est requis."
+                - "L'ID du preset doit être un entier."
+                - "La date d'expiration doit être un objet datetime."
+                - "La date d'expiration doit être dans le futur."
+                - "Le nombre maximum d'utilisations doit être un entier positif."
+              example: "La date d'expiration doit être dans le futur."
+
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:    
+        schema:
+          properties:
+            status: 
+              type: string
+              enum:
+                - NotFound
+              example: "error"
+            slug: 
+              type: string
+              enum: 
+                - USER_NOT_FOUND
+                - PRESET_NOT_FOUND
+              example: "PRESET_NOT_FOUND"
+            message: 
+              type: string
+              enum:
+                - "L'utilisateur créant le token n'existe pas."
+                - "Le preset spécifié n'existe pas."
+              example: "Le preset spécifié n'existe pas."
+
+  500:
+    description: Erreur interne du serveur.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - InternalServerError
+              example: "error"
+            slug:
+              type: string
+              enum: 
+                - INVALID_USER_ID
+              example: "INVALID_USER_ID"
+            message:
+              type: string
+              example: "L'ID de l'utilisateur doit être un entier."

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenue chez GuardiHack</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; color: #333333;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; padding: 30px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <tr>
+            <td>
+                <h2 style="color: #111111; margin-top: 0; text-transform: uppercase; font-size: 20px; letter-spacing: 1px;">GuardiHack</h2>
+                <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;">
+                
+                <p style="font-size: 15px; line-height: 1.5; margin-bottom: 20px;">
+                    Bonjour <strong>{{ token.first_name }} {{ token.last_name | upper }}</strong>,
+                </p>
+                
+                <p style="font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
+                    Bienvenue chez <strong>GuardiHack</strong>. Pour finaliser votre inscription et activer votre compte, merci de cliquer sur le bouton ci-dessous afin d'accéder au formulaire et d'entrer les informations demandées :
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="http://127.0.0.1:5173/register/{{ token.token }}" target="_blank" style="background-color: #111111; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 3px; font-size: 14px; font-weight: bold; display: inline-block;">
+                        S'inscrire à la plateforme
+                    </a>
+                </div>
+                
+                <p style="font-size: 13px; color: #666666; line-height: 1.4; margin-top: 30px;">
+                    Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur :<br>
+                    <a href="http://127.0.0.1:5173/register/{{ token.token }}" style="color: #0066cc; word-break: break-all;">http://127.0.0.1:5173/register/{{ token.token }}</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #eeeeee; margin: 20px 0;">
+                <p style="font-size: 11px; color: #999999; text-align: center; margin: 0;">
+                    Ceci est un e-mail automatique, merci de ne pas y répondre.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

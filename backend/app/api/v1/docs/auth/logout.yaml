@@ -1,0 +1,41 @@
+summary: Déconnexion de GuardiHack
+tags:
+  - Authentification
+
+responses:
+  200:
+    description: Déconnexion réussie.
+    content:
+      application/json:
+        schema:
+          properties:
+            status:
+              type: string
+              description: Statut de la réponse
+              example: "success"
+            message:
+              type: string
+              description: Message de la réponse
+              example: "Déconnexion réussie."
+            
+
+  500:
+    description: Erreur interne du serveur.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: [InternalServerError]
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: [LOGOUT_FAILED]
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              example: "Erreur lors de la déconnexion."

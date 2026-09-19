@@ -1,0 +1,85 @@
+summary: Modification du montant d'expérience d'un utilisateur par un administrateur
+tags:
+  - Admin/XP
+
+requestBody:
+  description: Données pour ajuster le montant d'expérience d'un utilisateur
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - user_id
+          - amount
+        properties:
+          user_id:
+            type: integer
+            description: ID de l'utilisateur à qui modifier le montant d'expérience
+            example: 123
+          amount:
+            type: integer
+            description: Le montant d'expérience à ajouter (positif) ou retirer (négatif) de l'utilisateur
+            example: 150
+
+responses:
+  200:
+    description: Montant d'expérience de l'utilisateur modifié avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: f"XP ajusté manuellement de {xp_change} points avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              enum:
+                - INVALID_USER_ID
+                - INVALID_XP_CHANGE
+              example: "INVALID_XP_CHANGE"
+            message:
+              type: string
+              enum:
+                - "L'ID de l'utilisateur doit être un entier."
+                - "Le changement d'XP doit être un nombre."
+              example: "Le changement d'XP doit être un nombre."
+
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:    
+        schema:
+          properties:
+            status: 
+              type: string
+              enum:
+                - NotFound
+              example: "error"
+            slug: 
+              type: string
+              enum: 
+                - USER_NOT_FOUND
+              example: "USER_NOT_FOUND"
+            message: 
+              type: string
+              enum:
+                - "L'utilisateur spécifié n'existe pas."
+              example: "L'utilisateur spécifié n'existe pas."

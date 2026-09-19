@@ -1,0 +1,74 @@
+summary: Affichage de la liste de toutes les rotations où se trouve le challenge
+tags:
+  - Admin - Challenges
+  - Rotation
+
+parameters:
+  - in: path
+    name: challenge_id
+    required: true
+    schema:
+      type: integer
+    description: ID du challenge pour lequel récupérer les rotations
+    example: 1
+
+responses:
+  200:
+    description: Renvoi la liste de toutes les rotations dans lesquelles le challenge est présent.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        rotation_list:
+          type: array
+          items:
+            type: object
+            properties:
+              rotation_name: 
+                type: string
+                description: Nom de la rotation
+                example: "Rotation OSINT 2024"
+              rotation_start:
+                type: string
+                format: date-time
+                description: Date de début de la rotation
+                example: "2024-01-01T00:00:00Z"
+              rotation_end:
+                type: string
+                format: date-time
+                description: Date de fin de la rotation
+                example: "2024-01-31T23:59:59Z"
+              challenges:
+                type: array
+                description: Liste des challenges inclus dans la rotation
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: ID du challenge
+                      example: 1
+                    name:
+                      type: string
+                      description: Nom du challenge
+                      example: "OSINT 19"
+                    category:
+                      type: string
+                      description: Nom de la catégorie du challenge
+                      example: "OSINT"
+
+  404:
+    description: Session utilisateur non trouvée ou challenge non trouvé.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND, CHALLENGE_NOT_FOUND]
+          example: "CHALLENGE_NOT_FOUND"
+        message: 
+          type: string
+          example: "Challenge non trouvé."

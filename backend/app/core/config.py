@@ -1,27 +1,25 @@
-import os
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from services.preset_service import (
+    create_preset
+)
+from services.auth_service import (
+    create_token
+)
 
-class Settings(BaseSettings):
-    PROJECT_NAME: str = "GuardiHack P00l API"
-    VERSION: str = "1.0.0"
-    API_V1_STR: str = "/api/v1"
-    ENVIRONMENT: str = "development"
-    # Database
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_SERVER: str
-    POSTGRES_PORT: str
-    POSTGRES_DB: str
-    POOL_CODE: str
-    
-    SECRET_KEY: str = "054a624bfc520d01907c3f527ab1488612f13434db6929b60992f99658ae13de"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 jours
-    
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-    
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+data = {
+    "max_uses": 10,
+    "preset_id": 1
+}
 
-settings = Settings()
+def init_db():
+    
+    admin_preset = {
+        "name": "ADMIN",
+        "type": "ADMIN",
+        "affiliation": "PARIS",
+        "niveau": "GCS3",
+        "classe": "1"
+    }
+    create_preset(1, admin_preset)
+    create_token(0, data=data, auto=True)
+
+

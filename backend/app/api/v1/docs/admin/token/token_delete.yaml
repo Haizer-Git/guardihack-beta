@@ -1,0 +1,72 @@
+summary: Suppression d'un token d'accès
+tags:
+  - Admin/Token
+
+parameters:
+  - in: path
+    name: token_id
+    required: true
+    schema:
+      type: integer
+      description: ID du token d'accès à supprimer
+      example: 1
+
+responses:
+  200:
+    description: Token supprimé avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Token supprimé avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              enum:
+                - INVALID_TOKEN_ID
+              example: "INVALID_TOKEN_ID"
+            message:
+              type: string
+              enum:
+                - "L'ID du token doit être un entier."
+              example: "L'ID du token doit être un entier."
+
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:    
+        schema:
+          properties:
+            status: 
+              type: string
+              enum:
+                - NotFound
+              example: "error"
+            slug: 
+              type: string
+              enum: 
+                - TOKEN_NOT_FOUND
+              example: "TOKEN_NOT_FOUND"
+            message: 
+              type: string
+              enum:
+                - "Le token spécifié n'existe pas."
+              example: "Le token spécifié n'existe pas."

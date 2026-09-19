@@ -1,0 +1,58 @@
+summary: Liste des badges
+tags:
+  - Admin/Badge
+
+responses:
+  200:
+    description: Liste des badges récupérée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            badges:
+              type: array
+              description: Liste des badges
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID du badge
+                    example: 1
+                  type:
+                    type: string
+                    description: Type du badge
+                    example: "ADMIN"
+                  name:
+                    type: string
+                    description: Nom du badge
+                    example: "Badge Administrateur"
+                  description:
+                    type: string
+                    description: Description du badge
+                    example: "Ce badge est décerné aux administrateurs de GuardiHack."
+                  icon_url:
+                    type: string
+                    format: uri
+                    description: URL de l'image du badge
+                    example: "app/assets/badges/admin.png"
+                  requirement_type:
+                    type: string
+                    description: Type de l'exigence pour obtenir le badge
+                    example: "SCORE"
+                  requirement_value:
+                    type: integer
+                    description: Valeur de l'exigence pour obtenir le badge
+                    example: 1000
+                  requirement_text:
+                    type: string
+                    description: Description de l'exigence pour obtenir le badge.
+                    example: "Obtenez ce badge en validant 10 challenges de catégorie Web."
+                  created_by:
+                    type: string
+                    description: Nom d'utilisateur de l'administrateur ayant créé le badge.
+                    example: "Haizer"

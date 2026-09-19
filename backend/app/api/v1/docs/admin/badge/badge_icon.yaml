@@ -1,0 +1,128 @@
+summary: Modification de l'icône d'un badge par un administrateur
+tags:
+  - Admin/Badge
+
+parameters:
+  - name: badge_id
+    in: path
+    description: ID du badge à modifier
+    required: true
+    schema:
+      type: integer
+      example: 1
+
+
+requestBody:
+  description: Icon à envoyer pour le badge
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        required:
+          - file
+        properties:
+          file:
+            type: string
+            format: binary
+            description: Fichier image à envoyer pour le badge (PNG, JPG, JPEG, GIF et SVG)
+            example: "badge_icon.png"
+
+responses:
+  201:
+    description: Icône de badge mise à jour avec succès.
+    content:
+      application/json:
+        schema:
+          properties:
+            status:
+              type: string
+              description: Statut de la réponse
+              example: "success"
+            message:
+              type: string
+              description: Message de confirmation
+              example: f"L'icône du badge {badge.name} a été mise à jour avec succès."
+
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - MISSING_ICON
+              - INVALID_BADGE_ID
+              - INVALID_ICON_TYPE
+              example: "INVALID_ICON_TYPE"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Icône de badge manquante."
+                - "L'ID du badge doit être un entier."
+                - "Type de fichier d'icône invalide. Seuls les fichiers PNG, JPG, JPEG, GIF et SVG sont autorisés."
+              example: "Type de fichier d'icône invalide. Seuls les fichiers PNG, JPG, JPEG, GIF et SVG sont autorisés."
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_NOT_FOUND
+              example: "BADGE_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "Badge non trouvé."
+              example: "Badge non trouvé."
+
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - FILENAME_TAKEN
+              example: "FILENAME_TAKEN"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Le nom du fichier est déjà pris."
+              example: "Le nom du fichier est déjà pris."

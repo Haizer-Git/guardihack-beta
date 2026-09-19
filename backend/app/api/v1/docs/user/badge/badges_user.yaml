@@ -1,0 +1,73 @@
+summary: Récupération des badges d'un utilisateur via son username
+tags:
+  - User/Badge
+
+parameters:
+  - name: target_username
+    in: path
+    type: string
+    required: true
+    description: Le nom de l'utilisateur cible dont on souhaite récupérer les badges.
+    example: "Haizer"
+
+responses:
+  200:
+    description: Récupération réussie. Renvoie tous les badges de l'utilisateur.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        badges: 
+          type: object
+          properties:
+            id: 
+              type: integer
+              description: ID du badge
+              example: 1
+            type: 
+              type: string
+              description: Type du badge
+              example: "POOL"
+            name: 
+              type: string
+              description: Nom du badge
+              example: "Beginner"
+            description: 
+              type: string
+              description: Description du badge
+              example: "A participé à la GuardiaPool 2026"
+            icon_url: 
+              type: string
+              description: URL de l'icône du badge
+              example: "static/badges/pool/beginner.png"
+            requirement_text:
+              type: string
+              description: Texte décrivant les conditions pour obtenir le badge
+              example: "A participé à la GuardiaPool 2026"
+
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - USER_NOT_FOUND
+              example: "USER_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "Utilisateur non trouvé."
+              example: "Utilisateur non trouvé."

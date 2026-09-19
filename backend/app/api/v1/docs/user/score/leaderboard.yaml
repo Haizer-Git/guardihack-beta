@@ -1,0 +1,60 @@
+summary: Récupération du leaderboard des utilisateurs basé sur leur score global, avec pagination via offset
+tags:
+  - User - Info
+  - Rank
+
+parameters:
+  - name: offset
+    in: path
+    type: integer
+    required: true
+    description: Offset pour la pagination du leaderboard, indiquant à partir de quel rang commencer à afficher les utilisateurs. Par exemple, un offset de 0 affichera les utilisateurs classés de 1 à 10, un offset de 10 affichera les utilisateurs classés de 11 à 20, etc.
+    example: 20
+
+responses:
+  200:
+    description: Récupération réussie. Renvoi le leaderboard.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        history:
+          type: array
+          items:
+            properties:
+              rank:
+                type: integer
+                description: Rang de l'utilisateur basé sur son score global par rapport aux autres utilisateurs
+                example: 42
+              total_user:
+                type: integer
+                description: Nombre total d'utilisateurs dans le leaderboard
+                example: 20
+              username:
+                type: string
+                description: Nom d'utilisateur de l'utilisateur
+                example: "Haizer"
+              avatar:
+                type: integer
+                description: ID de l'avatar de l'utilisateur
+                example: 1
+              global_score:
+                type: integer
+                description: Score global de l'utilisateur basé sur ses performances dans les challenges
+                example: 1234
+
+  404:
+    description: Session utilisateur non trouvée.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND]
+          example: "SESSION_NOT_FOUND"
+        message: 
+          type: string
+          example: "Session utilisateur non trouvée."

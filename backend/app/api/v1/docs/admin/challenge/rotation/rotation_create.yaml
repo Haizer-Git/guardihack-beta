@@ -1,0 +1,99 @@
+summary: Création d'une rotation de challenges
+tags:
+  - Admin/Rotation
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          name:
+            type: string
+            description: Nom de la rotation
+            example: "Rotation Juillet 2026"
+          start:
+            type: string
+            format: date-time
+            description: Date et heure de début de la rotation
+            example: "2026-07-01 00:00:00"
+          end:
+            type: string
+            format: date-time
+            description: Date et heure de fin de la rotation
+            example: "2026-07-31 23:59:59"
+
+responses:
+  201:
+    description: Rotation créee avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Rotation créée avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - INVALID_DATA
+              - MISSING_FIELD
+              - INVALID_DATE_FORMAT
+              - INVALID_DATE_RANGE
+              example: "INVALID_DATE_RANGE"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Les données doivent être un dictionnaire."
+                - "Le champ 'name' est requis."
+                - "Le champ 'start' est requis."
+                - "Le champ 'end' est requis."
+                - "Format de date invalide."
+                - "La date de début doit être antérieure à la date de fin."
+              example: "La date de début doit être antérieure à la date de fin."
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - ROTATION_ALREADY_EXISTS
+              example: "ROTATION_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Une rotation avec ce nom existe déjà."
+              example: "Une rotation avec ce nom existe déjà."

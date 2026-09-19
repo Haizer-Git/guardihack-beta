@@ -1,0 +1,64 @@
+summary: Liste des presets utilisateurs
+tags:
+  - Admin/Preset
+
+responses:
+  200:
+    description: Liste des presets récupérée avec succès
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            presets:
+              type: array
+              items:
+                type: object
+                description: Liste des presets récupérés
+                properties:
+                  id:
+                    type: integer
+                    description: ID du preset utilisateur
+                    example: 1
+                  mail:
+                    type: string
+                    format: email
+                    description: Adresse e-mail associé au preset
+                    example: "htiouti@guardiaschool.fr"
+                  type:
+                    type: string
+                    description: Type de preset utilisateur
+                    enum: 
+                      - ADMIN
+                      - USER
+                      - PEDAGOGIE
+                      - INVITE
+                      - EXTERNE
+                    example: "USER"
+                  first_name:
+                    type: string
+                    description: Prénom associé au preset
+                    example: "Haizer"
+                  last_name:
+                    type: string
+                    description: Nom de famille associé au preset
+                    example: "Tiouti"
+                  affiliation:
+                    type: string
+                    description: Affiliation associée au preset
+                    example: "PARIS"
+                  niveau:
+                    type: string
+                    description: Niveau associé au preset
+                    example: "GCS2"
+                  classe:
+                    type: string
+                    description: Classe associée au preset
+                    example: "1"
+                  created_by:
+                    type: string
+                    description: Nom d'utilisateur de l'administrateur ayant créé le preset
+                    example: "Haizer"

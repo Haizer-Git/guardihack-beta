@@ -1,0 +1,108 @@
+summary: Suppression d'une catégorie de challenge par un administrateur
+tags:
+  - Admin/Category
+
+parameters:
+  - in: path
+    name: category_id
+    required: true
+    schema:
+      type: integer
+    description: ID de la catégorie à supprimer
+    example: 1
+
+responses:
+  201:
+    description: Catégorie supprimée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            category_id:
+              type: integer
+              description: ID du challenge
+              example: 1
+            message:
+              type: string
+              example: "Catégorie de challenge supprimée avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - INVALID_CATEGORY_ID
+              example: "INVALID_CATEGORY_ID"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "L'ID de la catégorie doit être un entier."
+              example: "L'ID de la catégorie doit être un entier."
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - CATEGORY_NOT_FOUND
+              example: "CATEGORY_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Catégorie de challenge non trouvée."
+              example: "Catégorie de challenge non trouvée."
+
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - CATEGORY_NOT_EMPTY
+              example: "CATEGORY_NOT_EMPTY"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "La catégorie contient des challenges et ne peut pas être supprimée."
+              example: "La catégorie contient des challenges et ne peut pas être supprimée."

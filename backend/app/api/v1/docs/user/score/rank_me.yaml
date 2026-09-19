@@ -1,0 +1,32 @@
+summary: Récupération de l'activité récente de l'utilisateur connecté
+tags:
+  - User - Info
+  - Rank
+
+responses:
+  200:
+    description: Récupération réussie. Renvoi le rank de l'utilisateur.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        rank:
+          type: integer
+          description: Rang de l'utilisateur basé sur son score global par rapport aux autres utilisateurs
+          example: 42
+
+  404:
+    description: Session utilisateur non trouvée ou profil non trouvé.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND, USER_NOT_FOUND]
+          example: "USER_NOT_FOUND"
+        message: 
+          type: string
+          example: "Utilisateur non trouvé."

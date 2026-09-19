@@ -1,0 +1,148 @@
+summary: Retrait d'un badge à un utilisateur
+tags:
+  - Admin/Badge
+
+parameters:
+  - name: badge_id
+    in: path
+    description: ID du badge à retirer
+    required: true
+    schema:
+      type: integer
+      example: 1
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - user_id
+        properties:
+          user_id:
+            type: integer
+            description: ID de l'utilisateur à qui retirer le badge
+            example: 1
+
+responses:
+  200:
+    description: Badge retiré avec succès de l'utilisateur.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: f"Le badge {badge.name} a été retiré de l'utilisateur {user.username} avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - INVALID_USER_ID
+              - INVALID_BADGE_ID
+              example: "INVALID_BADGE_ID"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "L'ID de l'utilisateur doit être un entier."
+                - "L'ID du badge doit être un entier."
+              example: "L'ID du badge doit être un entier."
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - USER_NOT_FOUND
+                - BADGE_NOT_FOUND
+              example: "BADGE_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "Badge non trouvé."
+              example: "Badge non trouvé."
+
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_NOT_ASSIGNED
+              example: "BADGE_NOT_ASSIGNED"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "L'utilisateur ne possède pas ce badge."
+              example: "L'utilisateur ne possède pas ce badge."
+
+  500:
+    description: Erreur interne du serveur.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - InternalServerError
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - INVALID_ASSIGN_VALUE
+              example: "INVALID_ASSIGN_VALUE"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "La valeur d'assignation doit être un booléen."
+              example: "La valeur d'assignation doit être un booléen."

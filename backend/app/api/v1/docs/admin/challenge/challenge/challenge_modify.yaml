@@ -1,0 +1,175 @@
+summary: Modification d'un challenge par un administrateur
+tags:
+  - Admin/Challenge
+
+parameters:
+  - in: path
+    name: challenge_id
+    required: true
+    schema:
+      type: integer
+    description: ID du challenge à modifier
+    example: 1
+
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          new_name:
+            type: string
+            description: Nouveau nom du challenge (vide = gardera son nom actuel)
+            example: "OSINT 18"
+          new_type:
+            type: string
+            description: Nouveay type du challenge (vide = gardera son type actuel)
+            enum:
+              - PERMANENT
+              - ROTATION
+            example: "PERMANENT"
+          new_description:
+            type: string
+            description: Nouvelle description du challenge (vide = gardera sa description actuelle)
+            example: "Découvrez les secrets hihihihi"
+          new_category_id:
+            type: integer
+            description: Nouvel ID de la catégorie du challenge (vide = gardera la catégorie actuelle)
+            example: 1
+          new_difficulty:
+            type: string
+            description: Nouvelle difficulté du challenge (vide = gardera sa difficulté actuelle)
+            enum:
+              - EASY
+              - MEDIUM
+              - HARD
+              - EXPERT
+            example: "HARD"
+          new_points:
+            type: integer
+            description: Nouveaux nombre de points attribués pour la résolution du challenge (vide = gardera son nombre actuel)
+            example: 450
+          new_docker_image_id:
+            type: integer
+            description: Nouvel ID de l'image Docker associée au challenge (vide = gardera son image actuel)
+            example: 1
+          new_flag_type:
+            type: string
+            description: Nouveau type de flag (vide = gardera son type de flag actuel)
+            enum: 
+              - STATIC
+              - DYNAMIC
+            example: "STATIC"
+          new_master_flag:
+            type: string
+            description: Nouveau flag maître du challenge (vide = gardera son flaf maître actuel)
+            example: "GH{EXAMPLE_MASTER_FLAG}"
+
+responses:
+  201:
+    description: Challenge modifié avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Challenge modifié avec succès."
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - INVALID_DATA
+              - INVALID_CATEGORY_ID
+              - INVALID_DIFFICULTY
+              - INVALID_TYPE
+              - INVALID_FLAG_TYPE
+              - INVALID_POINTS
+              - INVALID_DOCKER_IMAGE_ID
+              - NO_MODIFICATIONS
+              example: "NO_MODIFICATIONS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Les données doivent être un dictionnaire."
+                - "L'ID de la catégorie doit être un entier."
+                - "Difficulté de challenge invalide."
+                - "Type de flag invalide."
+                - "Le nombre de points doit être un entier."
+                - "L'ID de l'image Docker doit être un entier."
+                - "Aucune modification n'a été apporté au challenge."
+              example: "Aucune modification n'a été apporté au challenge."
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - CHALLENGE_NOT_FOUND
+                - CATEGORY_NOT_FOUND
+                - DOCKER_IMAGE_NOT_FOUND
+              example: "DOCKER_IMAGE_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Challenge non trouvé."
+                - "Catégorie de challenge non trouvée."
+                - "Image Docker non trouvée."
+              example: "Image Docker non trouvée."
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - CHALLENGE_ALREADY_EXISTS
+              example: "CHALLENGE_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Un challenge avec ce nom existe déjà."
+              example: "Un challenge avec ce nom existe déjà."

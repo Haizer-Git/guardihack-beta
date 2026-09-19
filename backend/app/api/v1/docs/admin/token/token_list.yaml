@@ -1,0 +1,54 @@
+summary: Liste des tokens
+tags:
+  - Admin/Token
+
+responses:
+  200:
+    description: Liste des tokens récupérée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            presets:
+              type: array
+              items:
+                type: object
+                description: Liste des tokens récupérés.
+                properties:
+                  id:
+                    type: integer
+                  preset_id:
+                    type: integer
+                    description: ID du preset utilisateur associé au token
+                    example: 1
+                  token:
+                    type: string
+                    description: Valeur du token d'accès
+                    example: "abc123def456ghi789jkl012mno345pq"
+                  uses:
+                    type: integer
+                    description: Nombre d'utilisations du token
+                    example: 5
+                  max_uses:
+                    type: integer
+                    description: Nombre maximum d'utilisations du token
+                    example: 10
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: Date et heure d'expiration du token
+                    example: "2026-05-20 21:38:54.833939"
+                  created_by:
+                    type: string
+                    description: Nom d'utilisateur de l'administrateur ayant créé le token
+                    example: "admin_user"
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Date et heure de création du token
+                    example: 15/06/2026 14:30:00
+

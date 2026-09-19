@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 from typing import Optional
-from app.models.challenge import ChallengeType
+from backend.app.models.core.challenge import ChallengeType
 
 # Schéma de base
 class ChallengeBase(BaseModel):

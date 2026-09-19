@@ -1,0 +1,133 @@
+summary: Modification d'une rotation de challenges
+tags:
+  - Admin/Rotation
+
+parameters:
+  - in: path
+    name: rotation_id
+    required: true
+    schema:
+      type: integer
+    description: ID de la rotation à modifier
+    example: 1
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          new_name:
+            type: string
+            description: Nouveau nom de la rotation (vide = gardera son nom actuel)
+            example: "Rotation Juillet 2026"
+          new_start:
+            type: string
+            format: date-time
+            description: Nouvelle date et heure de début de la rotation (vide = gardera la date de début actuelle)
+            example: "2026-07-01 00:00:00"
+          new_end:
+            type: string
+            format: date-time
+            description: Nouvelle date et heure de fin de la rotation (vide = gardera la date de fin actuelle)
+            example: "2026-07-31 23:59:59"
+
+responses:
+  201:
+    description: Rotation modifiée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Rotation modifiée avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - INVALID_DATA
+              - INVALID_DATE_FORMAT
+              - INVALID_DATE_RANGE
+              - NO_MODIFICATIONS
+              example: "INVALID_DATE_RANGE"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Les données doivent être un dictionnaire."
+                - "Format de date invalide."
+                - "La date de début doit être antérieure à la date de fin."
+                - "Aucune modification n'a été apportée à la rotation."
+              example: "La date de début doit être antérieure à la date de fin."
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - ROTATION_NOT_FOUND
+              example: "ROTATION_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Rotation non trouvée."
+              example: "Rotation non trouvée."
+  
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - ROTATION_ALREADY_EXISTS
+              example: "ROTATION_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Une rotation avec ce nom existe déjà."
+              example: "Une rotation avec ce nom existe déjà."

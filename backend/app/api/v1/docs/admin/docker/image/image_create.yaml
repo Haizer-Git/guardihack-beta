@@ -1,0 +1,100 @@
+summary: Création d'une image Docker
+description: Permet à un administrateur de créer une image Docker.
+tags:
+  - Admin - Docker Images
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          image_name:
+            type: string
+            description: Nom de l'image Docker
+            example: "Ubuntu 20.04"
+          image_tag:
+            type: string
+            description: Tag de l'image Docker
+            example: "nginxdemos/hello"
+          internal_port:
+            type: integer
+            description: Port interne de l'image Docker
+            example: 80
+          memory_limit:
+            type: string
+            description: Limite de mémoire pour les conteneurs créés à partir de cette image (en Mo)
+            example: "256m"
+
+responses:
+  201:
+    description: Image créee avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            image_id:
+              type: integer
+              description: ID de l'image
+              example: 1
+            message:
+              type: string
+              example: "Image Docker créée avec succès."
+
+  400:
+    description: Données manquantes.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "error"
+            slug:
+              type: string
+              enum: [MISSING_DATA]
+              example: "MISSING_DATA"
+            message:
+              type: string
+              example: "Données manquantes."
+
+  404:
+    description: Session utilisateur non trouvée.
+    content:
+      application/json:    
+        schema:
+          properties:
+            status: 
+              type: string
+              example: "error"
+            slug: 
+              type: string
+              enum: [SESSION_NOT_FOUND]
+              example: "SESSION_NOT_FOUND"
+            message: 
+              type: string
+              example: "Session utilisateur non trouvée."
+
+  500:
+    description: Erreur lors de la création de l'image Docker.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "error"
+            slug:
+              type: string
+              enum: [IMAGE_CREATION_FAILED]
+              example: IMAGE_CREATION_FAILED
+            message:
+              type: string
+              example: "Erreur lors de la création de l'image Docker: {str(e)}"

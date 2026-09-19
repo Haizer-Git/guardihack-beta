@@ -1,0 +1,76 @@
+summary: Mise à jour du nom d'utilisateur
+tags:
+  - User - Update
+  - Username
+
+requestBody:
+  description: Nouveau nom d'utilisateur à mettre à jour.
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - new_username
+        properties:
+          new_username:
+            type: string
+            description: Le nouveau nom d'utilisateur que l'utilisateur souhaite adopter.
+            example: "NewUsername123"
+
+responses:
+  200:
+    description: Mise à jour réussie.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        message: 
+          type: string
+          example: "Nom d'utilisateur mis à jour avec succès."
+
+  400:
+    description: Utilisateur non trouvé, nom d'utilisateur inchangé, nom d'utilisateur déjà pris, nom d'utilisateur interdit (présent dans la liste banned_username.txt), nom d'utilisateur ne respecte pas les critères de longueur.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [USER_NOT_FOUND, USERNAME_UNCHANGED, USERNAME_TAKEN, USERNAME_BANNED, USERNAME_LENGTH]
+          example: "USERNAME_TAKEN"
+        message: 
+          type: string
+          example: "Le nom d'utilisateur est déjà pris."
+  
+  404:
+    description: Session utilisateur non trouvée.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum : [SESSION_NOT_FOUND]
+          example: "SESSION_NOT_FOUND"
+        message: 
+          type: string
+          example: "Session utilisateur non trouvée."
+
+  422:
+    description: Données manquantes (nouveau nom d'utilisateur).
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum : [USERNAME_MISSING]
+          example: "USERNAME_MISSING"
+        message: 
+          type: string
+          example: "Nouveau nom d'utilisateur manquant"

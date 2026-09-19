@@ -1,0 +1,160 @@
+summary: Modification d'un badge par un administrateur
+tags:
+  - Admin/Badge
+
+parameters:
+  - name: badge_id
+    in: path
+    description: ID du badge à modifier
+    required: true
+    schema:
+      type: integer
+      example: 1
+
+
+requestBody:
+  description: Données du badge à modifier.
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          new_name:
+            type: string
+            description: Le nouveau nom du badge (vide = gardera son nom actuel).
+            example: "Badge GuardiHack 2026"
+          new_description:
+            type: string
+            description: La nouvelle description du badge (vide = gardera sa description actuelle).
+            example: "Badge attribué aux participants du concours GuardiHack 2026."
+          new_type:
+            type: string
+            description: Le nouveau type du badge (vide = gardera son type actuel).
+            enum:
+              - CHALLENGE
+              - ACHIEVEMENT
+              - SPECIAL
+            example: "CHALLENGE"
+          new_requirement_type:
+            type: string
+            description: Le nouveau type d'exigence pour obtenir le badge (vide = gardera son type d'exigence actuel).
+            enum: 
+              - CHALLENGE_ID
+              - SOLVE_COUNT
+              - SCORE
+              - CATEGORY_SOLVE_COUNT
+              - CONNECTION_STREAK
+              - CONNECTION_DATE
+            example: "CHALLENGE_ID"
+          new_requirement_value:
+            type: integer
+            description: La nouvelle valeur requise pour obtenir le badge (vide = gardera sa valeur actuelle).
+            example: 6
+          new_requirement_text:
+            type: string
+            description: La nouvelle description de l'exigence pour obtenir le badge (vide = gardera son texte actuel).
+            example: "Terminer le challenge Osint 7."
+
+
+responses:
+  201:
+    description: Badge modifié avec succès.
+    content:
+      application/json:
+        schema:
+          properties:
+            status:
+              type: string
+              description: Statut de la réponse
+              example: "success"
+            message:
+              type: string
+              description: Message de confirmation
+              example: f"Le badge {badge.name} a été modifié avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+              - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - INVALID_BADGE_ID
+                - INVALID_BADGE_DATA
+                - INVALID_REQUIREMENT_TYPE
+                - INVALID_REQUIREMENT_VALUE
+                - INVALID_BADGE_TYPE
+                - NO_MODIFICATIONS
+              example: "NO_MODIFICATIONS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "L'ID du badge doit être un entier."
+                - "Les informations du badge doivent être sous forme de dictionnaire."
+                - "La valeur de la condition doit être un entier."
+                - "Type de condition invalide."
+                - "Type de badge invalide."
+                - "Aucune modification n'a été apportée au badge."
+              example: "Aucune modification n'a été apportée au badge."
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_NOT_FOUND
+              example: "BADGE_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              example: "Badge non trouvé."
+
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_ALREADY_EXISTS
+              example: "BADGE_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Un badge avec ce nom existe déjà."
+              example: "Un badge avec ce nom existe déjà."

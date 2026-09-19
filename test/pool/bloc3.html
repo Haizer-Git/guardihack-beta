@@ -1,0 +1,44 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="flex flex-col h-full bg-base-100 p-6 text-base-content font-code">
+  <div class="flex items-center justify-between border-b border-primary/20 pb-4 mb-6">
+    <div class="flex items-center gap-3">
+      <button class="text-xs text-primary hover:underline">← Retour au Dashboard</button>
+      <span class="text-base-content/30">/</span>
+      <h1 class="font-titre font-bold text-xl text-base-content">Bloc 03 : Boîte Noire & Soumission du Write-up</h1>
+    </div>
+    <span class="text-xs bg-primary/20 text-primary border border-primary/40 px-3 py-1 font-bold">OBJECTIF FINAL</span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+    <!-- Infos de la cible -->
+    <div class="border border-base-300 bg-base-200/30 p-5 flex flex-col gap-4">
+      <h2 class="font-titre font-bold text-base text-primary">Cible : L'Atoll Vulnérable</h2>
+      <p class="text-xs text-base-content/60 leading-relaxed">
+        Cette machine intègre l'ensemble des failles (Web, PrivEsc, Réseau) abordées tout au long de la journée. Vous devez compromettre le serveur root et rédiger votre démarche.
+      </p>
+      <div class="bg-neutral text-neutral-content p-3 text-xs space-y-1">
+        <p>IP Cible : <span class="text-primary font-bold">10.10.50.22</span></p>
+        <p>Statut : <span class="text-success">EN LIGNE</span></p>
+      </div>
+      <button class="w-full py-2 bg-success/20 text-success border border-success/40 text-xs font-bold uppercase tracking-wider">
+        Redémarrer l'instance ⟳
+      </button>
+    </div>
+
+    <!-- Zone de rédaction du Write-up -->
+    <div class="lg:col-span-2 border border-primary/40 bg-base-200/20 p-5 flex flex-col gap-4">
+      <h2 class="font-titre font-bold text-base text-base-content">Rapport d'audit (Write-up)</h2>
+      <p class="text-xs text-base-content/60">
+        Expliquez brièvement comment vous avez trouvé l'ENTRYPOINT, escaladé vos privilèges et récupéré le flag root.
+      </p>
+      <textarea rows="8" placeholder="1. Phase de reconnaissance (nmap)...&#10;2. Exploitation de la vulnérabilité XSS/SQLi...&#10;3. Élévation de privilèges (sudo / SUID)..." class="w-full bg-base-100 border border-base-300 p-3 text-xs outline-none focus:border-primary resize-none flex-1 font-mono"></textarea>
+      
+      <div class="flex justify-between items-center pt-2">
+        <span class="text-[10px] text-base-content/40">Format accepté : Markdown ou texte brut structuré.</span>
+        <button class="px-6 py-2.5 bg-primary text-base-100 text-xs font-bold uppercase tracking-wider hover:bg-primary/80 transition-colors">
+          Soumettre le Write-up & Valider la Pool
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

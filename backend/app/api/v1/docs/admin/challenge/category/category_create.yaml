@@ -1,0 +1,90 @@
+summary: Création d'une catégorie de challenge par un administrateur
+tags:
+  - Admin/Category
+
+requestBody:
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - category_name
+          - category_description
+        properties:
+          category_name:
+            type: string
+            description: Nom de la catégorie
+            example: "OSINT"
+          category_description:
+            type: string
+            description: Description de la catégorie
+            example: "Catégorie dédiée aux challenges d'OSINT"
+
+
+responses:
+  201:
+    description: Catégorie créée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: f"Catégorie {new_category.name} créée avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+              - MISSING_FIELD
+              example: "MISSING_FIELD"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Le champ 'category_name' est requis."
+                - "Le champ 'category_description' est requis."
+              example: "Le champ 'category_name' est requis pour créer une catégorie de challenge."
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - CATEGORY_ALREADY_EXISTS
+              example: "CATEGORY_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Une catégorie de challenge avec ce nom existe déjà."
+              example: "Une catégorie de challenge avec ce nom existe déjà."

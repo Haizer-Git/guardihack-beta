@@ -1,0 +1,90 @@
+summary: Récupération de la liste des challenges triés avec un type de tri, et le filtre actif, difficulté, nom ou catégorie du challenge
+tags:
+  - User - Challenges
+  - List
+
+parameters:
+  - name: type
+    in: path
+    type: string
+    required: true
+    description: Type de tri pour la liste des challenges
+    enum: [ACTIVE, NAME, CATEGORY, DIFFICULTY]
+    example: "CATEGORY"
+  - name: filter
+    in: path
+    type: string
+    required: true
+    description: Le filtre choisi pour le type.
+    example: "OSINT"
+
+responses:
+  200:
+    description: Récupération réussie. Renvoi la liste de tous les challenges.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        user_list:
+          type: array
+          items:
+            properties:
+              id:
+                type: integer
+                description: ID du challenge
+                example: 1
+              name:
+                type: string
+                description: Nom du challenge
+                example: "Osint 19"
+              type:
+                type: string
+                description: Type du challenge
+                enum: [PERMANENT, ROTATING, EVENT]
+                example: "PERMANENT"
+              description:
+                type: string
+                description: Description du challenge
+                example: "Saurez-vous retrouver la personne derrière ce challenge ?"
+              category:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: Nom de la catégorie du challenge
+                      example: "OSINT"
+                    description:
+                      type: string
+                      description: Description de la catégorie du challenge
+                      example: "Challenges liés à la recherche d'informations sur Internet"
+              difficulty:
+                type: string
+                description: Difficulté du challenge
+                enum: [EASY, MEDIUM, HARD, EXPERT]
+                example: "HARD"
+              points:
+                type: integer
+                description: Points attribués pour la résolution du challenge
+                example: 450
+              is_active:
+                type: boolean
+                description: Indique si le challenge est actuellement actif
+                example: true
+
+  404:
+    description: Session utilisateur non trouvée ou type de filtre invalide.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND, INVALID_TYPE]
+          example: "INVALID_TYPE"
+        message: 
+          type: string
+          example: "Type de filtre invalide."

@@ -1,0 +1,67 @@
+summary: Récupération de l'historique des scores récents d'un utilisateur cible via son username (3 dernières entrées)
+tags:
+  - User/Score
+
+parameters: 
+  - name: target_username
+    in: path
+    type: string
+    required: true
+    description: Le nom de l'utilisateur cible dont on souhaite récupérer l'historique.
+    example: "Haizer"
+
+responses:
+  200:
+    description: Récupération réussie. Renvoie tout l'historique.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        history:
+          type: array
+          description: Liste des 3 derniers changements de score de l'utilisateur, triée du plus récent au plus ancien.
+          items:
+            timestamp:
+              type: string
+              format: date-time
+              description: Date et heure du changement de score
+              example: "26/01/2026 14:02:54"
+            change:
+              type: integer
+              description: Montant du changement de score (positif ou négatif)
+              example: 150
+            reason:
+              type: string
+              description: Raison du changement de score
+              example: "Validation du challenge OSINT 19"
+            score_total:
+              type: integer
+              description: Score total de l'utilisateur après ce changement
+              example: 1250
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - USER_NOT_FOUND
+              example: "USER_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "Utilisateur non trouvé."
+              example: "Utilisateur non trouvé."

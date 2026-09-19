@@ -1,0 +1,57 @@
+summary: Affichage des statistiques de validation des challenges d'un utilisateur via son username
+tags:
+  - User - Challenges
+
+parameters:
+  - name: target_username
+    in: path
+    type: string
+    required: true
+    description: Le nom de l'utilisateur cible dont on souhaite récupérer les statistiques de validation des challenges.
+    example: "Haizer"
+
+responses:
+  200:
+    description: Renvoi les statistiques de validation des challenges par catégories et difficultés.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        statistics:
+          type: object
+          properties:
+            category_stats:
+              type: object
+              description: Statistiques de validation par catégorie
+              additionalProperties:
+                type: integer
+              example:
+                Web: 7
+                OSINT: 3
+                Cryptography: 5
+            difficulty_stats:
+              type: object
+              description: Statistiques de validation par difficulté
+              additionalProperties:
+                type: integer
+              example:
+                EASY: 5
+                MEDIUM: 7
+                HARD: 3
+                EXPERT: 0
+
+  404:
+    description: Session utilisateur non trouvée ou utilisateur non trouvé.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND, USER_NOT_FOUND]
+          example: "SESSION_NOT_FOUND"
+        message: 
+          type: string
+          example: "Session utilisateur non trouvée."

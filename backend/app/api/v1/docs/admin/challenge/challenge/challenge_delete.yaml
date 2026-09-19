@@ -1,0 +1,28 @@
+summary: Suppression d'un challenge par un administrateur
+tags:
+  - Admin/Challenge
+
+parameters:
+  - in: path
+    name: challenge_id
+    required: true
+    schema:
+      type: integer
+    description: ID du challenge à supprimer
+    example: 1
+
+
+responses:
+  201:
+    description: Challenge supprimé avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Challenge supprimé avec succès."

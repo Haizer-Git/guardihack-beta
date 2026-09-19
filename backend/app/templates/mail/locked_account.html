@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Compte Verrouillé - GuardiHack</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; padding: 20px;">
+    <div style="max-width: 600px; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #d97706; margin-top: 0;">Sécurité GuardiHack — Compte Verrouillé</h2>
+        
+        <p>Bonjour <strong>{{ info.first_name }} {{ info.last_name }}</strong> (<code>@{{ info.username }}</code>),</p>
+        
+        <p>Nous vous informons que votre compte sur la plateforme GuardiHack a été <strong>temporairement verrouillé</strong>.</p>
+        
+        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
+            <p style="margin: 0; font-weight: bold;">Raison du verrouillage :</p>
+            <p style="margin: 5px 0 0 0;">{{ info.reason }}</p>
+        </div>
+
+        {% if info.ended_at %}
+        <p>Ce verrouillage est temporaire et prendra fin automatiquement le : <strong>{{ info.ended_at }}</strong>.</p>
+        {% else %}
+        <p>Ce verrouillage restera actif jusqu'à nouvel ordre de l'équipe pédagogique ou de l'administration.</p>
+        {% endif %}
+        
+        <p>Si vous pensez qu'il s'agit d'une erreur, veuillez contacter un administrateur.</p>
+        
+        <p style="margin-top: 30px; font-size: 12px; color: #666;">
+            L'équipe GuardiHack
+        </p>
+    </div>
+</body>
+</html>

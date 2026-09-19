@@ -1,0 +1,182 @@
+summary: Création d'un badge par un administrateur
+tags:
+  - Admin/Badge
+
+requestBody:
+  description: Données du badge à créer
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        required:
+          - name
+          - description
+          - type
+          - requirement_type
+          - requirement_value
+          - requirement_text
+        properties:
+          name:
+            type: string
+            description: Le nom du badge à créer.
+            example: "Badge GuardiHack 2026"
+          description:
+            type: string
+            description: La description du badge à créer.
+            example: "Badge attribué aux participants du concours GuardiHack 2026."
+          type:
+            type: string
+            description: Le type du badge à créer.
+            enum:
+              - CHALLENGE
+              - ACHIEVEMENT
+              - SPECIAL
+            example: "CHALLENGE"
+          requirement_type:
+            type: string
+            description: Le type d'exigence pour obtenir le badge.
+            enum: 
+              - CHALLENGE_ID
+              - SOLVE_COUNT
+              - SCORE
+              - CATEGORY_SOLVE_COUNT
+              - CONNECTION_STREAK
+              - CONNECTION_DATE
+            example: "CHALLENGE_ID"
+          requirement_value:
+            type: integer
+            description: La valeur requise pour obtenir le badge.
+            example: 6
+          requirement_text:
+            type: string
+            description: Description de l'exigence pour obtenir le badge.
+            example: "Terminer le challenge Osint 7."
+
+responses:
+  201:
+    description: Badge créé avec succès.
+    content:
+      application/json:
+        schema:
+          properties:
+            status:
+              type: string
+              description: Statut de la réponse
+              example: "success"
+            message:
+              type: string
+              description: Message de confirmation
+              example: f"Le badge {name} a été créé avec succès."
+
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - MISSING_FIELD
+                - INVALID_BADGE_DATA
+                - INVALID_REQUIREMENT_TYPE
+                - INVALID_REQUIREMENT_VALUE
+                - INVALID_BADGE_TYPE
+              example: "INVALID_BADGE_TYPE"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "Le champ '{field}' est requis pour créer un badge."
+                - "L'ID de l'utilisateur doit être un entier."
+                - "Les informations du badge doivent être sous forme de dictionnaire."
+                - "La valeur de la condition doit être un entier."
+                - "Type d'exigence invalide."
+                - "Type de badge invalide."
+              example: "Type de badge invalide."
+
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - USER_NOT_FOUND
+              example: "USER_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "L'utilisateur créant le badge n'existe pas."
+              example: "L'utilisateur créant le badge n'existe pas."
+
+  409:
+    description: Données fournies présentant un ou plusieurs conflits.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - Conflict
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_ALREADY_EXISTS
+              example: "BADGE_ALREADY_EXISTS"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "Un badge avec ce nom existe déjà."
+              example: "Un badge avec ce nom existe déjà."
+  500:
+    description: Erreur interne du serveur.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - InternalServerError
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - INVALID_USER_ID
+              example: "INVALID_USER_ID"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum:
+                - "L'ID de l'utilisateur doit être un entier."
+              example: "L'ID de l'utilisateur doit être un entier."

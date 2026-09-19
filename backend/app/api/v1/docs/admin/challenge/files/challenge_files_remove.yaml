@@ -1,0 +1,74 @@
+summary: Suppression d'un fichier d'un challenge
+description: Permet à un administrateur de supprimer un fichier d'un challenge.
+tags:
+  - Admin/Challenge/Files
+
+parameters:
+  - in: path
+    name: challenge_id
+    required: true
+    schema:
+      type: integer
+    description: ID du challenge auquel le fichier doit être supprimé
+
+requestBody:
+  required: true
+  content:
+    multipart/form-data:
+      schema:
+        type: object
+        properties:
+          file_id:
+            type: integer
+            description: ID du fichier à supprimer
+            example: 1
+
+responses:
+  201:
+    description: Fichier de challenge supprimé avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Fichier de challenge supprimé avec succès."
+
+  400:
+    description: Données manquantes, ID de fichier manquant.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "error"
+            slug:
+              type: string
+              enum: [MISSING_FILE_ID]
+              example: "MISSING_FILE_ID"
+            message:
+              type: string
+              example: "ID de fichier manquant."
+
+  404:
+    description: Session utilisateur non trouvée, challenge non trouvé, fichier non trouvé ou échec lors de la suppression du fichier.
+    content:
+      application/json:    
+        schema:
+          properties:
+            status: 
+              type: string
+              example: "error"
+            slug: 
+              type: string
+              enum: [SESSION_NOT_FOUND, CHALLENGE_NOT_FOUND, FILE_NOT_FOUND, FILE_DELETE_ERROR]
+              example: "FILE_NOT_FOUND"
+            message: 
+              type: string
+              example: "Fichier non trouvé pour ce challenge."

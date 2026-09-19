@@ -1,0 +1,48 @@
+summary: Récupération de la liste des tous les utilisateurs inscrits
+tags:
+  - User/Info
+
+parameters:
+  - name: offset
+    in: path
+    type: integer
+    required: true
+    description: Offset pour la pagination de la liste des utilisateurs
+    example: 20
+
+responses:
+  200:
+    description: Récupération réussie. Renvoi la liste de tous les utilisateurs du offset à offset+20.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        user_list:
+          type: array
+          items:
+            properties:
+              username:
+                type: string
+                description: Nom d'utilisateur de l'utilisateur
+                example: "Haizer"
+              avatar:
+                type: string
+                description: URL de l'avatar de l'utilisateur
+                example: "/static/assets/cosmetics/1.png"
+              affiliation:
+                type: string
+                description: Affiliation de l'utilisateur
+                example: "PARIS"
+              niveau:
+                type: string
+                description: Niveau de l'utilisateur
+                example: "GCS2"
+              classe:
+                type: string
+                description: Classe de l'utilisateur
+                example: "1"
+              level:
+                type: integer
+                description: Niveau de l'utilisateur basé sur son XP
+                example: 12

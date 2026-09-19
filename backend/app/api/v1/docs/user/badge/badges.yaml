@@ -1,0 +1,51 @@
+summary: Récupération des badges de l'utilisateur connecté
+tags:
+  - User - Info
+  - Badges
+
+responses:
+  200:
+    description: Récupération réussie. Renvoie tous les badges de l'utilisateur.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "success"
+        badges: 
+          type: object
+          properties:
+            id: 
+              type: integer
+              description: ID du badge
+              example: 1
+            type: 
+              type: string
+              description: Type du badge
+              example: "POOL"
+            name: 
+              type: string
+              description: Nom du badge
+              example: "Beginner"
+            description: 
+              type: string
+              description: Description du badge
+              example: "A participé à la GuardiaPool 2026"
+            icon_url: 
+              type: string
+              description: URL de l'icône du badge
+              example: "app/assets/badges/pool/beginner.png"
+
+  404:
+    description: Session utilisateur non trouvée ou aucun badge pour cet utilisateur.
+    schema:
+      properties:
+        status: 
+          type: string
+          example: "error"
+        slug: 
+          type: string
+          enum: [SESSION_NOT_FOUND, NO_BADGE]
+          example: "NO_BADGE"
+        message: 
+          type: string
+          example: "Aucun badge trouvé pour cet utilisateur."

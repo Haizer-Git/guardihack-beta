@@ -1,0 +1,67 @@
+summary: Liste des cosmétiques
+tags:
+  - Admin/Cosmetic
+
+responses:
+  200:
+    description: Liste des cosmétiques récupérée avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            cosmetics:
+              type: array
+              description: Liste des cosmétiques
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    description: ID du cosmétiques
+                    example: 1
+                  type:
+                    type: string
+                    description: Type du cosmétiques
+                    example: "BANNER"
+                  name:
+                    type: string
+                    description: Nom du cosmétique
+                    example: "Bannière GuardiHack Pool 2025"
+                  description:
+                    type: string
+                    description: Description du cosmétique
+                    example: "Ce badge est décerné aux participants de la GuardiHack Pool 2025."
+                  icon_url:
+                    type: string
+                    format: uri
+                    description: URL de l'image du cosmétique
+                    example: "app/assets/cosmetics/banner/guardihack_pool.png"
+                  requirement_type:
+                    type: string
+                    description: Type de l'exigence pour obtenir le cosmétique
+                    example: "CHALLENGE_COMPLETED"
+                  requirement_value:
+                    type: integer
+                    description: Valeur de l'exigence pour obtenir le cosmétique
+                    example: 1
+                  requirement_text:
+                    type: string
+                    description: Description de l'exigence pour obtenir le cosmétique.
+                    example: "Cosmétique décerné aux participants de GuardiHack 2026."
+                  rarete:
+                    type: string
+                    description: Rareté du cosmétique.
+                    example: "RARE"
+                  exclu:
+                    type: boolean
+                    description: Indique si le cosmétique peut être acheté dans la boutique.
+                    example: true
+                  created_by:
+                    type: string
+                    description: Nom d'utilisateur de l'administrateur ayant créé le cosmétique.
+                    example: "Haizer"
+

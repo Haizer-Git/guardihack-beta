@@ -1,0 +1,78 @@
+summary: Suppression d'un badge
+tags:
+  - Admin/Badge
+
+parameters:
+  - in: path
+    name: badge_id
+    required: true
+    schema:
+      type: integer
+      description: ID du badge à supprimer
+      example: 1
+
+responses:
+  200:
+    description: Badge supprimé avec succès.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            status:
+              type: string
+              example: "success"
+            message:
+              type: string
+              example: "Badge supprimé avec succès."
+  
+  400:
+    description: Requête invalide.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+              - BadRequest
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - INVALID_BADGE_ID
+              example: "INVALID_BADGE_ID"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              enum: 
+                - "L'ID du badge doit être un entier."
+              example: "L'ID du badge est invalide."
+  
+  404:
+    description: Données fournies non trouvées.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              description: Statut de l'erreur
+              enum: 
+                - NotFound
+              example: "error"
+            slug:
+              type: string
+              description: Code d'erreur spécifique
+              enum: 
+                - BADGE_NOT_FOUND
+              example: "BADGE_NOT_FOUND"
+            message:
+              type: string
+              description: Message d'erreur détaillé
+              example: "Badge non trouvé."
+
