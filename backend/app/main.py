@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from werkzeug.exceptions import HTTPException, BadRequest
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, jsonify, session
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -47,6 +48,7 @@ def register_error_handlers(app):
 
 def create_app():
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
     app.secret_key = os.getenv('SECRET_KEY')
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'guardihack.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
