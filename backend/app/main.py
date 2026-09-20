@@ -1,8 +1,9 @@
 import sys
 import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from werkzeug.exceptions import HTTPException, BadRequest
-from flask import Flask, jsonify, session  # pyright: ignore[reportMissingImports]
-from flask_cors import CORS  # pyright: ignore[reportMissingModuleSource]
+from flask import Flask, jsonify, session
+from flask_cors import CORS
 from flask_migrate import Migrate
 from extensions import redis_client
 from core.config import init_db
