@@ -59,7 +59,7 @@ def create_app():
     app.config['SMTP_USERNAME'] = os.getenv('SMTP_USERNAME')
     app.config['SMTP_PASSWORD'] = os.getenv('SMTP_PASSWORD')
     app.config['MAIL_SENDER'] = os.getenv('MAIL_SENDER')
-    CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True, origins=os.getenv('FRONTEND_URL'))
     app.config['SWAGGER'] = {
         'openapi': '3.0.0',
         'title': 'GuardiHack API v1',
