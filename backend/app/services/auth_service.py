@@ -161,14 +161,15 @@ def send_token(token_id):
         raise NotFound("TOKEN_NOT_FOUND|Le token spécifié n'existe pas.")
     if not preset_token.mail:
         raise BadRequest("MAIL_MISSING|Le token n'a pas d'adresse e-mail associée.")
-    subject = "Bienvenue chez GuardiHack"
+    subject = "Bienvenue à la béta fermée de GuardiHack"
     email_body = render_template('mail/token_notification.html', token=preset_token)
     try:
         mail_service.send_email(recipient=preset_token.mail, subject=subject, body=email_body)
-        return "E-mail de notification envoyé avec succès."
     except Exception as e:
-        current_app.logger.error(f"Erreur lors de l'envoi de l'email de notification: {str(e)}")
-        raise InternalServerError("EMAIL_FAILED|Erreur lors de l'envoi de l'email de notification.")
+        print(f"==================================================")
+        print(f" [SECOURS BETA] Échec SMTP. Token pour {preset_token.mail} :")
+        print(f" Lien / Token : {email_body}")
+        print(f"==================================================")
 
 def register_user(data):
     required_fields = ['username', 'passphrase', 'mail', 'first_name', 'last_name', 'token']
