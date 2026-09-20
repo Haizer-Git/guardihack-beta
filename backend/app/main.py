@@ -54,7 +54,7 @@ def create_app():
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = None
     app.config['SMTP_SERVER'] = os.getenv('SMTP_SERVER')
     app.config['SMTP_USERNAME'] = os.getenv('SMTP_USERNAME')
     app.config['SMTP_PASSWORD'] = os.getenv('SMTP_PASSWORD')
