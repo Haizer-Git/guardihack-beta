@@ -360,7 +360,6 @@ onMounted(() => { fetchCosmetics() })
                   <dl class="grid grid-cols-2 gap-2 text-xs font-code bg-base-100/40 p-3 border border-base-300">
                     <dt class="text-base-content/40">Type</dt><dd class="text-base-content font-medium uppercase text-right">{{ c.type }}</dd>
                     <dt class="text-base-content/40">Exclusif</dt><dd class="text-base-content font-medium text-right">{{ c.exclu ? 'Oui' : 'Non' }}</dd>
-                    <dt class="text-base-content/40">En boutique</dt><dd class="font-medium text-right" :class="c.in_active_boutique ? 'text-success' : 'text-base-content/60'">{{ c.in_active_boutique ? 'Oui' : 'Non' }}</dd>
                   </dl>
                 </div>
                 <div class="flex flex-col gap-4">

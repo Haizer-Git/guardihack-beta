@@ -1,10 +1,6 @@
 from flask import (
     Blueprint, request, jsonify
 )
-
-from services.boutique_service import (
-    get_active_boutique
-)
 from services.session_service import (
     get_user_session
 )
@@ -41,14 +37,10 @@ from services.instance_service import (
     stop_instance_for_user
 )
 
-from flasgger import swag_from
 user = Blueprint('user', __name__)
-
-## ---- PROFILE ENDPOINTS ---- ##
 
 @user.route('/api/user/me', methods=['GET'])
 @login_required
-@swag_from('../docs/user/info/me.yaml')
 def api_get_current_user():
     return jsonify({
         "status": "success",
@@ -57,7 +49,6 @@ def api_get_current_user():
 
 @user.route('/api/user/me/profile', methods=['GET'])
 @login_required
-@swag_from('../docs/user/info/profile_me.yaml')
 def api_get_current_profile():
     return jsonify({
         "status": "success",
@@ -66,7 +57,6 @@ def api_get_current_profile():
 
 @user.route('/api/user/<string:target_username>/profile', methods=['GET'])
 @login_required
-@swag_from('../docs/user/info/profile_user.yaml')
 def api_get_user_profile(target_username):
     return jsonify({
         "status": "success",
@@ -75,7 +65,6 @@ def api_get_user_profile(target_username):
 
 @user.route('/api/user/<string:target_username>/badge', methods=['GET'])
 @login_required
-@swag_from('../docs/user/badge/badges_user.yaml')
 def api_get_user_badges_user(target_username):
     return jsonify({
         "status": "success",
@@ -84,7 +73,6 @@ def api_get_user_badges_user(target_username):
 
 @user.route('/api/user/<string:target_username>/score/history', methods=['GET'])
 @login_required
-@swag_from('../docs/user/score/score_history_user.yaml')
 def api_get_score_history_user(target_username):
     return jsonify({
         "status": "success",
@@ -93,7 +81,6 @@ def api_get_score_history_user(target_username):
 
 @user.route('/api/user/<string:target_username>/score/recent', methods=['GET'])
 @login_required
-@swag_from('../docs/user/score/recent_score_user.yaml')
 def api_get_recent_score_user(target_username):
     return jsonify({
         "status": "success",
@@ -102,7 +89,6 @@ def api_get_recent_score_user(target_username):
 
 @user.route('/api/user/<string:target_username>/challenge', methods=['GET'])
 @login_required
-@swag_from('../docs/user/info/challenge_user.yaml')
 def api_get_user_challenges_user(target_username):
     return jsonify({
         "status": "success",
@@ -111,7 +97,6 @@ def api_get_user_challenges_user(target_username):
 
 @user.route('/api/user/<string:target_username>/challenge/statistics', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/info/statistics_user.yaml')
 def api_get_statistics_user(target_username):
     return jsonify({
         "status": "success",
@@ -123,7 +108,6 @@ def api_get_statistics_user(target_username):
 
 @user.route('/api/user/update/username', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/update/update_username.yaml')
 def api_update_username():
     data = request.get_json()
     return jsonify({
@@ -133,7 +117,6 @@ def api_update_username():
 
 @user.route('/api/user/update/privacy', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/update/update_privacy.yaml')
 def api_update_privacy():
     data = request.get_json()
     return jsonify({
@@ -143,7 +126,6 @@ def api_update_privacy():
 
 @user.route('/api/user/update/cosmetic', methods=['POST'])
 @login_required
-@swag_from('../docs/user/update/update_cosmetic.yaml')
 def api_update_cosmetic():
     data = request.get_json()
     return jsonify({
@@ -153,7 +135,6 @@ def api_update_cosmetic():
 
 @user.route('/api/user/cosmetic/list', methods=['GET'])
 @login_required
-@swag_from('../docs/user/cosmetic/cosmetic_list.yaml')
 def api_list_cosmetics():
     return jsonify({
         "status": "success",
@@ -162,7 +143,6 @@ def api_list_cosmetics():
 
 @user.route('/api/user/update/passphrase/code', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/update/update_passphrase_code.yaml')
 def api_update_passphrase():
     return jsonify({
         "status": "success",
@@ -171,7 +151,6 @@ def api_update_passphrase():
 
 @user.route('/api/user/update/passphrase/verify', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/update/update_passphrase_verify.yaml')
 def api_update_passphrase_verify():
     data = request.get_json()
     return jsonify({
@@ -181,7 +160,6 @@ def api_update_passphrase_verify():
 
 @user.route('/api/user/update/passphrase', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/update/update_passphrase_confirm.yaml')
 def api_update_passphrase_confirm():
     data = request.get_json()
     return jsonify({
@@ -193,7 +171,6 @@ def api_update_passphrase_confirm():
 
 @user.route('/api/user/score/leaderboard/<int:offset>', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/score/leaderboard.yaml')
 def api_get_leaderboard(offset):
     total_users, leaderboard = get_leaderboard(offset=offset)
     return jsonify({
@@ -204,7 +181,6 @@ def api_get_leaderboard(offset):
 
 @user.route('/api/user/list/<int:offset>', methods=['GET'])
 @login_required
-@swag_from('../docs/user/info/list.yaml')
 def api_get_user_list(offset):
     total_users, user_list = get_user_list(offset=offset)
     return jsonify({
@@ -215,7 +191,6 @@ def api_get_user_list(offset):
 
 @user.route('/api/user/list/search', methods=['GET'])
 @login_required
-# @swag_from('../docs/user/info/list_search.yaml')
 def api_search_user_list():
     offset = request.args.get('offset', default=0, type=int)
     affiliation = request.args.get('affiliation', default=None, type=str)
@@ -235,7 +210,6 @@ def api_search_user_list():
 
 @user.route('/api/user/badge/list', methods=['GET'])
 @login_required
-@swag_from('../docs/user/badge/list.yaml')
 def api_list_badges():
     return jsonify({
         "status": "success",
@@ -245,7 +219,6 @@ def api_list_badges():
 
 @user.route('/api/user/challenge/list', methods=['GET'])
 @login_required
-@swag_from('../docs/user/challenge/list.yaml')
 def api_list_challenges():
     return jsonify({
         "status": "success",
@@ -254,7 +227,6 @@ def api_list_challenges():
 
 @user.route('/api/user/challenge/category/list', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/challenge/category_list.yaml')
 def api_list_challenge_categories():
     return jsonify({
         "status": "success",
@@ -263,7 +235,6 @@ def api_list_challenge_categories():
 
 @user.route('/api/user/challenge/search/<string:type>/<string:filter>', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/challenge/search.yaml')
 def api_search_challenge(type, filter):
     return jsonify({
         "status": "success",
@@ -272,7 +243,6 @@ def api_search_challenge(type, filter):
 
 @user.route('/api/user/challenge/<int:challenge_id>/info', methods=['GET'])
 @login_required
-@swag_from('../docs/user/challenge/info.yaml')
 def api_challenge_info(challenge_id):
     return jsonify({
         "status": "success",
@@ -281,7 +251,6 @@ def api_challenge_info(challenge_id):
 
 @user.route('/api/user/challenge/<int:challenge_id>/validate', methods=['POST'])
 @login_required
-@swag_from('../docs/user/challenge/validate.yaml')
 def api_validate_challenge(challenge_id):
     data = request.get_json()
     completion_info, message = validate_challenge(user_id=get_user_session().get('user_id'), challenge_id=challenge_id, flag=data.get('flag'))
@@ -294,7 +263,6 @@ def api_validate_challenge(challenge_id):
 
 @user.route('/api/user/notification/new', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/notification/new.yaml')
 def api_get_new_notifications():
     notifications, count = get_new_notifications(user_id=get_user_session().get('user_id'))
     return jsonify({
@@ -305,7 +273,6 @@ def api_get_new_notifications():
 
 @user.route('/api/user/notification/all', methods=['GET'])
 @login_required
-#@swag_from('../docs/user/notification/all.yaml')
 def api_get_all_notifications():
     return jsonify({
         "status": "success",
@@ -314,7 +281,6 @@ def api_get_all_notifications():
 
 @user.route('/api/user/notification/<int:notification_id>/read', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/notification/mark_read.yaml')
 def api_mark_notification_read(notification_id):
     read_notification(user_id=get_user_session().get('user_id'), notification_id=notification_id)
     return jsonify({
@@ -323,7 +289,6 @@ def api_mark_notification_read(notification_id):
 
 @user.route('/api/user/notification/<int:notification_id>/unread', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/notification/mark_read.yaml')
 def api_mark_notification_unread(notification_id):
     unread_notification(user_id=get_user_session().get('user_id'), notification_id=notification_id)
     return jsonify({
@@ -332,7 +297,6 @@ def api_mark_notification_unread(notification_id):
 
 @user.route('/api/user/notification/global/<int:notification_id>/read', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/notification/mark_read.yaml')
 def api_mark_global_notification_read(notification_id):
     read_global_notification(user_id=get_user_session().get('user_id'), global_notification_id=notification_id)
     return jsonify({
@@ -341,7 +305,6 @@ def api_mark_global_notification_read(notification_id):
 
 @user.route('/api/user/notification/global/<int:notification_id>/unread', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/notification/mark_read.yaml')
 def api_mark_global_notification_unread(notification_id):
     unread_global_notification(user_id=get_user_session().get('user_id'), global_notification_id=notification_id)
     return jsonify({
@@ -350,7 +313,6 @@ def api_mark_global_notification_unread(notification_id):
 
 @user.route('/api/user/challenge/<int:challenge_id>/launch', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/challenge/instance_launch.yaml')
 def api_launch_challenge(challenge_id):
     result = launch_instance_for_user(user_id=get_user_session().get('user_id'), challenge_id=challenge_id)
     return jsonify({
@@ -361,29 +323,18 @@ def api_launch_challenge(challenge_id):
 
 @user.route('/api/user/challenge/<int:challenge_id>/instance/stop', methods=['POST'])
 @login_required
-#@swag_from('../docs/user/challenge/instance_stop.yaml')
 def api_stop_challenge_instance(challenge_id):
     return jsonify({
         "status": "success",
         "message": stop_instance_for_user(user_id=get_user_session().get('user_id'), challenge_id=challenge_id)
     }), 200
 
-
 @user.route('/api/user/challenge/<int:challenge_id>/files/list', methods=['GET'])
 @login_required
-#@swag_from('../docs/admin/challenge/files/challenge_files_list.yaml')
 def api_list_challenge_files(challenge_id):
     return jsonify({
         "status": "success",
         "files": list_challenge_files(challenge_id)
     }), 200
 
-@user.route('/api/user/boutique/<int:user_id>', methods=['GET'])
-# @login_required
-#@swag_from('../docs/user/boutique/list.yaml')
-def api_list_boutique(user_id):
-    return jsonify({
-        "status": "success",
-        "boutique": get_active_boutique(user_id=user_id)
-    }), 200
 

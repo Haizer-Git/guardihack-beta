@@ -8,9 +8,6 @@ from services.automatisation_service import (
     auto_create_token
 )
 from werkzeug.exceptions import BadRequest
-from services.boutique_service import (
-    add_cosmetic_in_boutique, create_boutique_rotation, random_cosmetic_selection
-)
 from flask import (
     Blueprint, request, jsonify
 )
@@ -71,14 +68,12 @@ from services.docker_service import (
 from services.instance_service import (
     launch_instance_for_user, list_instances, stop_instance_for_user
 )
-from flasgger import swag_from
 
 admin = Blueprint('admin', __name__)
 
 
 @admin.route('/api/admin/preset/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/preset/preset_create.yaml')
 def api_create_preset():
     data = request.get_json()
     return jsonify({
@@ -89,7 +84,6 @@ def api_create_preset():
 
 @admin.route('/api/admin/preset/<int:preset_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/preset/preset_delete.yaml')
 def api_delete_preset(preset_id):
     return jsonify({
         "status": "success",
@@ -98,7 +92,6 @@ def api_delete_preset(preset_id):
 
 @admin.route('/api/admin/preset/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/preset/preset_list.yaml')
 def api_list_presets():
     return jsonify({
         "status": "success",
@@ -107,7 +100,6 @@ def api_list_presets():
 
 @admin.route('/api/admin/preset/<int:preset_id>/info', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/preset/preset_info.yaml')
 def api_get_preset_info(preset_id):
     return jsonify({
         "status": "success",
@@ -116,7 +108,6 @@ def api_get_preset_info(preset_id):
 
 @admin.route('/api/admin/preset/<int:preset_id>/users', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/preset/preset_users.yaml')
 def api_get_preset_users(preset_id):
     return jsonify({
         "status": "success",
@@ -125,7 +116,6 @@ def api_get_preset_users(preset_id):
 
 @admin.route('/api/admin/token/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/token/token_create.yaml')
 def api_create_preset_token():
     data = request.get_json()
     return jsonify({
@@ -135,7 +125,6 @@ def api_create_preset_token():
 
 @admin.route('/api/admin/token/<int:token_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/token/token_delete.yaml')
 def api_delete_preset_token(token_id):
     return jsonify({
         "status": "success",
@@ -145,7 +134,6 @@ def api_delete_preset_token(token_id):
 
 @admin.route('/api/admin/token/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/token/token_list.yaml')
 def api_list_preset_tokens():
     return jsonify({
         "status": "success",
@@ -154,7 +142,6 @@ def api_list_preset_tokens():
 
 @admin.route('/api/admin/token/<int:token_id>/info', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/token/token_info.yaml')
 def api_get_token_info(token_id):
     return jsonify({
         "status": "success",
@@ -163,7 +150,6 @@ def api_get_token_info(token_id):
 
 @admin.route('/api/admin/token/<int:token_id>/notify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/token/token_notify.yaml')
 def api_notify_token(token_id):
     return jsonify({
         "status": "success",
@@ -172,7 +158,6 @@ def api_notify_token(token_id):
 
 @admin.route('/api/admin/token/create/auto/<int:preset_id>/<string:send_flag>', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/token/token_create_auto.yaml')
 def api_auto_create_token(preset_id, send_flag):
     file = request.files.get('file')
     if not file:
@@ -185,7 +170,6 @@ def api_auto_create_token(preset_id, send_flag):
 
 @admin.route('/api/admin/badge/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_create.yaml')
 def api_create_badge():
     data = request.get_json()
     return jsonify({
@@ -195,7 +179,6 @@ def api_create_badge():
 
 @admin.route('/api/admin/icon/upload/<string:item_type>', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/icon/upload/badge.yaml')
 def api_upload_icon(item_type):
     files = request.files.getlist('files')
     if not files or files[0].filename == '':
@@ -211,7 +194,6 @@ def api_upload_icon(item_type):
 
 @admin.route('/api/admin/icon/<int:icon_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/icon/delete.yaml')
 def api_delete_icon(icon_id):
     return jsonify({
         "status": "success",
@@ -220,7 +202,6 @@ def api_delete_icon(icon_id):
 
 @admin.route('/api/admin/icon/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/icon/list.yaml')
 def api_list_icons():
     return jsonify({
         "status": "success",
@@ -229,7 +210,6 @@ def api_list_icons():
 
 @admin.route('/api/admin/icon/list/<string:item_type>', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/icon/list.yaml')
 def api_list_icons_type(item_type):
     return jsonify({
         "status": "success",
@@ -238,7 +218,6 @@ def api_list_icons_type(item_type):
 
 @admin.route('/api/admin/badge/<int:badge_id>/modify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_modify.yaml')
 def api_modify_badge(badge_id):
     data = request.get_json()
     return jsonify({
@@ -248,7 +227,6 @@ def api_modify_badge(badge_id):
 
 @admin.route('/api/admin/badge/<int:badge_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_delete.yaml')
 def api_delete_badge(badge_id):
     return jsonify({
         "status": "success",
@@ -257,7 +235,6 @@ def api_delete_badge(badge_id):
 
 @admin.route('/api/admin/badge/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_list.yaml')
 def api_list_badges():
     return jsonify({
         "status": "success",
@@ -266,7 +243,6 @@ def api_list_badges():
 
 @admin.route('/api/admin/badge/<int:badge_id>/assign', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_assign.yaml')
 def api_assign_badge(badge_id):
     data = request.get_json()
     return jsonify({
@@ -276,7 +252,6 @@ def api_assign_badge(badge_id):
 
 @admin.route('/api/admin/badge/<int:badge_id>/unassign', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/badge/badge_unassign.yaml')
 def api_unassign_badge(badge_id):
     data = request.get_json()
     return jsonify({
@@ -286,7 +261,6 @@ def api_unassign_badge(badge_id):
 
 @admin.route('/api/admin/xp/adjust', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/xp/xp_adjust.yaml')
 def api_adjust_xp():
     data = request.get_json()
     return jsonify({
@@ -296,7 +270,6 @@ def api_adjust_xp():
 
 @admin.route('/api/admin/score/adjust', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/score/score_adjust.yaml')
 def api_adjust_score():
     data = request.get_json()
     return jsonify({
@@ -306,7 +279,6 @@ def api_adjust_score():
 
 @admin.route('/api/admin/score/<int:user_id>/history', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/score/score_history.yaml')
 def api_get_score_history(user_id):
     return jsonify({
         "status": "success",
@@ -315,7 +287,6 @@ def api_get_score_history(user_id):
 
 @admin.route('/api/admin/cosmetic/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_create.yaml')
 def api_create_cosmetic():
     data = request.get_json()
     return jsonify({
@@ -325,7 +296,6 @@ def api_create_cosmetic():
 
 @admin.route('/api/admin/cosmetic/<int:cosmetic_id>/modify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_modify.yaml')
 def api_modify_cosmetic(cosmetic_id):
     data = request.get_json()
     return jsonify({
@@ -337,7 +307,6 @@ def api_modify_cosmetic(cosmetic_id):
 
 @admin.route('/api/admin/cosmetic/<int:cosmetic_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_delete.yaml')
 def api_delete_cosmetic(cosmetic_id):
     return jsonify({
         "status": "success",
@@ -346,7 +315,6 @@ def api_delete_cosmetic(cosmetic_id):
 
 @admin.route('/api/admin/cosmetic/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_list.yaml')
 def api_list_cosmetics():
     return jsonify({
         "status": "success",
@@ -355,7 +323,6 @@ def api_list_cosmetics():
 
 @admin.route('/api/admin/cosmetic/<int:cosmetic_id>/assign', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_assign.yaml')
 def api_assign_cosmetic(cosmetic_id):
     data = request.get_json()
     return jsonify({
@@ -365,7 +332,6 @@ def api_assign_cosmetic(cosmetic_id):
 
 @admin.route('/api/admin/cosmetic/<int:cosmetic_id>/unassign', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/cosmetic/cosmetic_unassign.yaml')
 def api_unassign_cosmetic(cosmetic_id):
     data = request.get_json()
     return jsonify({
@@ -375,7 +341,6 @@ def api_unassign_cosmetic(cosmetic_id):
 
 @admin.route('/api/admin/notification/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/notification/notification_create.yaml')
 def api_create_notification():
     data = request.get_json()
     return jsonify({
@@ -385,7 +350,6 @@ def api_create_notification():
 
 @admin.route('/api/admin/notification/global/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/notification/notification_global_create.yaml')
 def api_create_global_notification():
     data = request.get_json()
     return jsonify({
@@ -395,7 +359,6 @@ def api_create_global_notification():
 
 @admin.route('/api/admin/notification/global/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/notification/notification_global_list.yaml')
 def api_list_global_notifications():
     return jsonify({
         "status": "success",
@@ -405,7 +368,6 @@ def api_list_global_notifications():
 
 @admin.route('/api/admin/challenge/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_create.yaml')
 def api_create_challenge():
     data = request.get_json()
     return jsonify({
@@ -415,7 +377,6 @@ def api_create_challenge():
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/history/<int:offset>', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_history.yaml')
 def api_challenge_history(challenge_id, offset):
     total_submissions, submissions = get_challenge_history(challenge_id, offset)
     return jsonify({
@@ -426,7 +387,6 @@ def api_challenge_history(challenge_id, offset):
 
 @admin.route('/api/admin/challenge/rotation/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_create.yaml')
 def api_create_challenge_rotation():
     data = request.get_json()
     return jsonify({
@@ -436,7 +396,6 @@ def api_create_challenge_rotation():
 
 @admin.route('/api/admin/challenge/rotation/<int:rotation_id>/modify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_modify.yaml')
 def api_modify_challenge_rotation(rotation_id):
     data = request.get_json()
     return jsonify({
@@ -446,7 +405,6 @@ def api_modify_challenge_rotation(rotation_id):
 
 @admin.route('/api/admin/challenge/rotation/<int:rotation_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_delete.yaml')
 def api_delete_challenge_rotation(rotation_id):
     return jsonify({
         "status": "success",
@@ -455,7 +413,6 @@ def api_delete_challenge_rotation(rotation_id):
 
 @admin.route('/api/admin/challenge/rotation/<int:rotation_id>/add', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_add.yaml')
 def api_add_challenge_rotation(rotation_id):
     data = request.get_json()
     return jsonify({
@@ -465,7 +422,6 @@ def api_add_challenge_rotation(rotation_id):
 
 @admin.route('/api/admin/challenge/rotation/<int:rotation_id>/remove', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_remove.yaml')
 def api_remove_challenge_rotation(rotation_id):
     data = request.get_json()
     return jsonify({
@@ -475,7 +431,6 @@ def api_remove_challenge_rotation(rotation_id):
 
 @admin.route('/api/admin/challenge/rotation/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_list.yaml')
 def api_list_challenge_rotations():
     return jsonify({
         "status": "success",
@@ -485,7 +440,6 @@ def api_list_challenge_rotations():
 
 @admin.route('/api/admin/challenge/rotation/<int:rotation_id>/info/', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/challenge/rotation/rotation_info.yaml')
 def api_challenge_rotation_info(rotation_id):
     return jsonify({
         "status": "success",
@@ -494,7 +448,6 @@ def api_challenge_rotation_info(rotation_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/modify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_modify.yaml')
 def api_modify_challenge(challenge_id):
     data = request.get_json()
     return jsonify({
@@ -504,7 +457,6 @@ def api_modify_challenge(challenge_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/activate', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_activate.yaml')
 def api_activate_challenge(challenge_id):
     return jsonify({
         "status": "success",
@@ -513,7 +465,6 @@ def api_activate_challenge(challenge_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/desactivate', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_desactivate.yaml')
 def api_desactivate_challenge(challenge_id):
     return jsonify({
         "status": "success",
@@ -522,7 +473,6 @@ def api_desactivate_challenge(challenge_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_delete.yaml')
 def api_delete_challenge(challenge_id):
     return jsonify({
         "status": "success",
@@ -531,7 +481,6 @@ def api_delete_challenge(challenge_id):
 
 @admin.route('/api/admin/challenge/list', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/challenge/challenge/challenge_list.yaml')
 def api_list_challenges():
     offset = request.args.get('offset', default=0, type=int)
     limit = request.args.get('limit', default=25, type=int)
@@ -556,7 +505,6 @@ def api_list_challenges():
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/info', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/challenge/challenge/challenge_info.yaml')
 def api_challenge_info(challenge_id):
     return jsonify({
         "status": "success",
@@ -565,7 +513,6 @@ def api_challenge_info(challenge_id):
 
 @admin.route('/api/admin/challenge/category/create', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/category/category_create.yaml')
 def api_create_challenge_category():
     data = request.get_json()
     return jsonify({
@@ -575,7 +522,6 @@ def api_create_challenge_category():
 
 @admin.route('/api/admin/challenge/category/<int:category_id>/delete', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/category/category_delete.yaml')
 def api_delete_challenge_category(category_id):
     return jsonify({
         "status": "success",
@@ -584,7 +530,6 @@ def api_delete_challenge_category(category_id):
 
 @admin.route('/api/admin/challenge/category/list', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/challenge/category/category_list.yaml')
 def api_list_challenge_category():
     return jsonify({
         "status": "success",
@@ -593,7 +538,6 @@ def api_list_challenge_category():
 
 @admin.route('/api/admin/challenge/category/<int:category_id>/challenges', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/challenge/category/challenge/challenge_list.yaml')
 def api_list_challenge_in_category(category_id):
     return jsonify({
         "status": "success",
@@ -602,7 +546,6 @@ def api_list_challenge_in_category(category_id):
 
 @admin.route('/api/admin/challenge/category/<int:category_id>/modify', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/challenge/category/category_modify.yaml')
 def api_modify_challenge_category(category_id):
     data = request.get_json()
     return jsonify({
@@ -612,7 +555,6 @@ def api_modify_challenge_category(category_id):
 
 @admin.route('/api/admin/docker/image/create', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/docker/image/image_create.yaml')
 def api_create_docker_image():
     image_info = {
         "name": request.form.get("name"),
@@ -631,7 +573,6 @@ def api_create_docker_image():
 
 @admin.route('/api/admin/docker/image/<int:image_id>/modify', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/docker/image/image_modify.yaml')
 def api_modify_docker_image(image_id):
     data = request.get_json()
     return jsonify({
@@ -641,7 +582,6 @@ def api_modify_docker_image(image_id):
 
 @admin.route('/api/admin/docker/image/<int:image_id>/delete', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/docker/image/image_delete.yaml')
 def api_delete_docker_image(image_id):
     return jsonify({
         "status": "success",
@@ -650,7 +590,6 @@ def api_delete_docker_image(image_id):
 
 @admin.route('/api/admin/docker/image/<int:image_id>/info', methods=['GET'])
 @admin_required
-#@swag_from('../docs/admin/docker/image/image_info.yaml')
 def api_get_docker_image_info(image_id):
     return jsonify({
         "status": "success",
@@ -659,7 +598,6 @@ def api_get_docker_image_info(image_id):
 
 @admin.route('/api/admin/docker/image/list', methods=['GET'])
 @admin_required
-#@swag_from('../docs/admin/docker/image/image_list.yaml')
 def api_list_docker_images():
     return jsonify({
         "status": "success",
@@ -669,7 +607,6 @@ def api_list_docker_images():
 
 @admin.route('/api/admin/docker/instance/launch', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/docker/instance/instance_launch.yaml')
 def api_launch_docker_instance():
     data = request.get_json()
     launch_instance_for_user(user_id=data.get('user_id'), challenge_id=data.get('challenge_id'))
@@ -680,7 +617,6 @@ def api_launch_docker_instance():
 
 @admin.route('/api/admin/docker/instance/stop', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/docker/instance/instance_stop.yaml')
 def api_stop_docker_instance():
     data = request.get_json()
     return jsonify({
@@ -690,7 +626,6 @@ def api_stop_docker_instance():
 
 @admin.route('/api/admin/docker/instance/list', methods=['GET'])
 @admin_required
-#@swag_from('../docs/admin/docker/instance/instance_list.yaml')
 def api_list_docker_instances():
     return jsonify({
         "status": "success",
@@ -699,7 +634,6 @@ def api_list_docker_instances():
 
 @admin.route('/api/admin/user/<int:user_id>/cosmetic/list', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/user/user_cosmetic_list.yaml')
 def api_list_user_cosmetics(user_id):
     return jsonify({
         "status": "success",
@@ -738,7 +672,6 @@ def api_get_user_list():
 
 @admin.route('/api/admin/user/<int:user_id>/info', methods=['GET'])
 @admin_required
-@swag_from('../docs/admin/user/user_info.yaml')
 def api_get_user_info(user_id):
     return jsonify({
         "status": "success",
@@ -748,7 +681,6 @@ def api_get_user_info(user_id):
 
 @admin.route('/api/admin/user/<int:user_id>/status/update', methods=['POST'])
 @admin_required
-@swag_from('../docs/admin/user/user_status_update.yaml')
 def api_update_user_status(user_id):
     data = request.get_json()
     return jsonify({
@@ -759,7 +691,6 @@ def api_update_user_status(user_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/files/add', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/challenge/files/challenge_files_add.yaml')
 def api_add_challenge_files(challenge_id):
     if 'file' not in request.files:
         return jsonify({
@@ -791,7 +722,6 @@ def api_add_challenge_files(challenge_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/files/<int:file_id>/remove', methods=['POST'])
 @admin_required
-#@swag_from('../docs/admin/challenge/files/challenge_files_remove.yaml')
 def api_remove_challenge_files(challenge_id, file_id):
     return jsonify({
         "status": "success",
@@ -800,53 +730,22 @@ def api_remove_challenge_files(challenge_id, file_id):
 
 @admin.route('/api/admin/challenge/<int:challenge_id>/files/list', methods=['GET'])
 @admin_required
-#@swag_from('../docs/admin/challenge/files/challenge_files_list.yaml')
 def api_list_challenge_files(challenge_id):
     return jsonify({
         "status": "success",
         "files": admin_list_challenge_files(challenge_id)
     }), 200
 
-
 @admin.route('/api/admin/challenge/<int:challenge_id>/reveal_flag', methods=['GET'])
 @admin_required
-#@swag_from('../docs/admin/challenge/challenge/challenge_reveal_flag.yaml')
 def api_reveal_challenge_flag(challenge_id):
     return jsonify({
         "status": "success",
         "flag": reveal_challenge_flag(challenge_id)
     }), 200
 
-@admin.route('/api/admin/boutique/rotation/create', methods=['POST'])
-# @admin_required
-#@swag_from('../docs/admin/boutique/boutique_create.yaml')
-def api_create_boutique():
-    data = request.get_json()
-    return jsonify({
-        "status": "success",
-        "message": create_boutique_rotation(data=data)
-    }), 201
-
-@admin.route('/api/admin/boutique/cosmetic/random', methods=['GET'])
-def api_random_cosmetic_selection():
-    size = request.args.get('size', default=1, type=int)
-    slot = request.args.get('slot', default=1, type=int)
-    return jsonify({
-        "status": "success",
-        "message": random_cosmetic_selection(size=size, slot=slot)
-    }), 200
-
-@admin.route('/api/admin/boutique/<int:boutique_id>/cosmetic/add', methods=['POST'])
-def api_add_cosmetic_to_boutique(boutique_id):
-    data = request.get_json()
-    return jsonify({
-        "status": "success",
-        "message": add_cosmetic_in_boutique(boutique_id=boutique_id, data=data)
-    }), 201
-
 @admin.route('/api/admin/achievement/create', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_create.yaml')
 def api_create_achievement():
     data = request.get_json()
     return jsonify({
@@ -856,7 +755,6 @@ def api_create_achievement():
 
 @admin.route('/api/admin/achievement/<int:achievement_id>/modify', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_modify.yaml')
 def api_modify_achievement(achievement_id):
     data = request.get_json()
     return jsonify({
@@ -866,7 +764,6 @@ def api_modify_achievement(achievement_id):
 
 @admin.route('/api/admin/achievement/<int:achievement_id>/delete', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_delete.yaml')
 def api_delete_achievement(achievement_id):
     return jsonify({
         "status": "success",
@@ -875,7 +772,6 @@ def api_delete_achievement(achievement_id):
 
 @admin.route('/api/admin/achievement/<int:achievement_id>/info', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_info.yaml')
 def api_get_achievement_info(achievement_id):
     return jsonify({
         "status": "success",
@@ -893,7 +789,6 @@ def api_add_achievement_requirement(achievement_id):
 
 @admin.route('/api/admin/achievement/requirement/<int:requirement_id>/delete', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_requirement_delete.yaml')
 def api_delete_achievement_requirement(requirement_id):
     return jsonify({
         "status": "success",
@@ -902,7 +797,6 @@ def api_delete_achievement_requirement(requirement_id):
 
 @admin.route('/api/admin/achievement/<int:achievement_id>/reward/add', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_requirement_reward_add.yaml')
 def api_add_achievement_requirement_reward(achievement_id):
     data = request.get_json()
     return jsonify({
@@ -912,7 +806,6 @@ def api_add_achievement_requirement_reward(achievement_id):
 
 @admin.route('/api/admin/achievement/reward/<int:reward_id>/delete', methods=['POST'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_requirement_reward_delete.yaml')
 def api_delete_achievement_requirement_reward(reward_id):
     return jsonify({
         "status": "success",
@@ -921,7 +814,6 @@ def api_delete_achievement_requirement_reward(reward_id):
 
 @admin.route('/api/admin/achievement/list', methods=['GET'])
 @admin_required
-# @swag_from('../docs/admin/achievement/achievement_list.yaml')
 def api_list_achievement():
     return jsonify({
         "status": "success",

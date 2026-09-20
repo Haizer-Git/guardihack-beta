@@ -4,7 +4,7 @@ from extensions import db
 import math, os
 from datetime import datetime
 
-coeff = float(os.getenv('XP_COEFFICIENT', "1.0"))  # Coefficient pour le calcul du niveau basé sur l'XP
+coeff = float(os.getenv('XP_COEFFICIENT', "1.0"))
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -246,7 +246,6 @@ class Cosmetic(db.Model):
     creator = db.relationship('User', back_populates='created_cosmetics', lazy=True)
     avatar_profiles = db.relationship('UserProfile', foreign_keys='[UserProfile.avatar_id]', back_populates='avatar_cosmetic')
     banner_profiles = db.relationship('UserProfile', foreign_keys='[UserProfile.banner_id]', back_populates='banner_cosmetic')
-    boutique_rotations = db.relationship('BoutiqueRotation', back_populates='cosmetic', lazy=True)
     requirements = db.relationship('AchievementRequirement', back_populates='cosmetic', lazy=True)
     icon = db.relationship('Icon', back_populates='cosmetics', lazy=True)
     rewards = db.relationship('AchievementReward', back_populates='cosmetic', lazy=True)
@@ -260,10 +259,6 @@ class Cosmetic(db.Model):
             return len(self.avatar_profiles)
         elif self.type == "BANNER":
             return len(self.banner_profiles)
-    @property
-    def in_active_boutique(self):
-        now = datetime.now()
-        return any(rotation.boutique.start_time <= now <= rotation.boutique.end_time for rotation in self.boutique_rotations)
 
 class UserCosmetic(db.Model):
     __tablename__ = "user_cosmetics"
@@ -380,60 +375,6 @@ class ScoreHistory(db.Model):
     # -- Relations --
     user = db.relationship('User', foreign_keys=[user_id], back_populates='score_history')
     manual_user = db.relationship('User', foreign_keys=[manual_user_id], back_populates='manual_score_history')
-
-class BoutiqueRotation(db.Model):
-    __tablename__ = "boutique_rotations"
-    # -- Clé primaire --
-    id = db.Column(db.Integer, primary_key=True)
-    # -- Colonnes --
-    poids = db.Column(db.Float, nullable=False, default=0.0)
-    # -- Clés étrangères --
-    cosmetic_id = db.Column(db.Integer, db.ForeignKey('cosmetics.id'), nullable=False)
-    boutique_id = db.Column(db.Integer, db.ForeignKey('boutiques.id'), nullable=False)
-    promotion_id = db.Column(db.Integer, db.ForeignKey('boutique_promotions.id'), nullable=False)
-    # -- Relations --
-    cosmetic = db.relationship('Cosmetic', back_populates='boutique_rotations', lazy=True)
-    boutique = db.relationship('Boutique', back_populates='rotations', lazy=True)
-    promotion = db.relationship('BoutiquePromotion', back_populates='boutique_rotations', lazy=True)
-
-class Boutique(db.Model):
-    __tablename__ = "boutiques"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, nullable=False)
-    start_time = db.Column(db.DateTime, default=datetime.now, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
-    type = db.Column(db.String(32), nullable=False, default='STANDARD')
-    # -- Relations --
-    rotations = db.relationship('BoutiqueRotation', back_populates='boutique', lazy=True)
-    # -- Propriétés --
-    @hybrid_property
-    def state(self):
-        now = datetime.now()
-        if self.start_time <= now <= self.end_time:
-            return "ACTIVE"
-        elif self.end_time < now:
-            return "PAST"
-        elif self.start_time > now:
-            return "FUTURE"
-    @state.expression
-    def state(cls):
-        now = datetime.now()
-        return db.case(
-            (cls.end_time < now, "PAST"),
-            (cls.start_time > now, "FUTURE"),
-            (and_(cls.start_time <= now, cls.end_time >= now), "ACTIVE")
-        )
-
-class BoutiquePromotion(db.Model):
-    __tablename__ = "boutique_promotions"
-    # -- Clé primaire --
-    id = db.Column(db.Integer, primary_key=True)
-    # -- Colonnes --
-    name = db.Column(db.String(64), unique=True, nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    valeur = db.Column(db.Float, nullable=False)
-    # -- Relations --
-    boutique_rotations = db.relationship('BoutiqueRotation', back_populates='promotion', lazy=True)
 
 class Notification(db.Model):
     __tablename__ = "notifications"

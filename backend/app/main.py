@@ -6,7 +6,6 @@ from flask_cors import CORS  # pyright: ignore[reportMissingModuleSource]
 from flask_migrate import Migrate
 from extensions import redis_client
 from core.config import init_db
-from core.test import test_db
 from dotenv import load_dotenv
 from flasgger import Swagger
 
@@ -47,23 +46,19 @@ def register_error_handlers(app):
 
 def create_app():
     app = Flask(__name__)
-
     app.secret_key = os.getenv('FLASK_SECRET_KEY')
-
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'guardihack.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+    app.config['SESSION_COOKIE_SECURE'] = True
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SMTP_SERVER'] = os.getenv('SMTP_SERVER')
     app.config['SMTP_USERNAME'] = os.getenv('SMTP_USERNAME')
     app.config['SMTP_PASSWORD'] = os.getenv('SMTP_PASSWORD')
     app.config['MAIL_SENDER'] = os.getenv('MAIL_SENDER')
-
     CORS(app, supports_credentials=True)
-    
     app.config['SWAGGER'] = {
         'openapi': '3.0.0',
         'title': 'GuardiHack API v1',
@@ -72,33 +67,24 @@ def create_app():
             'withCredentials': True
         }
     }
-
     mail_service.init_app(app)
     db.init_app(app)
-    
     swagger = Swagger(app)
-
     with app.app_context():
         if not os.path.exists(db_path):
             print("Base de données non trouvée. Initialisation en cours...")
             db.create_all()
             init_db()
-            test_db()
-
     for bp in bp_list:
         app.register_blueprint(bp)
-
     register_error_handlers(app)
     @app.before_request
     def track_user_online():
         user_id = session.get('user_id')
         if user_id:
             redis_client.setex(f"online_user:{user_id}", 300, "1")
-
     migrate = Migrate(app, db)
-
     return app
-
 app = create_app()
 
 @app.route('/')

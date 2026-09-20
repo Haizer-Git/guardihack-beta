@@ -298,6 +298,10 @@ const router = useRouter()
   opacity: 1;
 }
 .l {
+  background: linear-gradient(180deg, var(--g));
+  top: var(--t);
+  bottom: var(--t);
+  width: var(--w);
   left: -2px;
 }
 .r {
@@ -308,6 +312,10 @@ const router = useRouter()
   right: -2px;
 }
 .t {
+  background: linear-gradient(270deg, var(--g));
+  left: var(--t);
+  right: var(--t);
+  height: var(--w);
   top: -2px;
 }
 .b {

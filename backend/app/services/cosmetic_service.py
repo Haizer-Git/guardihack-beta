@@ -62,15 +62,14 @@ def create_cosmetic(user_id, cosmetic_info):
     cosmetics = Cosmetic.query.filter_by(name=name).with_entities(Cosmetic.id).first() is not None
     if cosmetics:
         raise Conflict("COSMETIC_ALREADY_EXISTS|Un cosmétique avec ce nom existe déjà.")
-    new_cosmetic = Cosmetic(
-        type=cosmetic_type,
-        name=name,
-        description=description,
-        icon_id=icon_id,
-        rarete=rarete,
-        exclu=exclu,
-        created_by=user_id
-    )
+    new_cosmetic = Cosmetic()
+    new_cosmetic.type = cosmetic_type
+    new_cosmetic.name = name
+    new_cosmetic.description = description
+    new_cosmetic.icon_id = icon_id
+    new_cosmetic.rarete = rarete
+    new_cosmetic.exclu = exclu
+    new_cosmetic.created_by = user_id
     db.session.add(new_cosmetic)
     db.session.commit()
     return f"Le cosmétique {name} a été créé avec succès."
@@ -190,7 +189,6 @@ def admin_list_cosmetics():
             "created_at": cosmetic.created_at.strftime("%d/%m/%Y %H:%M:%S"),
             "user_count": cosmetic.user_count,
             "active_user_count": cosmetic.active_user,
-            "in_active_boutique": cosmetic.in_active_boutique
         })
     return cosmetics_list
 
