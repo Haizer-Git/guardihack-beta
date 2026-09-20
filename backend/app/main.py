@@ -47,7 +47,7 @@ def register_error_handlers(app):
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = os.getenv('FLASK_SECRET_KEY')
+    app.secret_key = os.getenv('SECRET_KEY')
     db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'guardihack.db')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
