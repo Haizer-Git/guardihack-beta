@@ -10,6 +10,7 @@ def create_user_session(log_info):
         session['type'] = log_info.get('type')
         session['is_private'] = log_info.get('is_private')
     except Exception as e:
+        print(f"Erreur lors de la création de la session: {str(e)}")
         raise InternalServerError("SESSION_CREATION_FAILED|Erreur lors de la création de la session.")
 
 def clear_user_session():
