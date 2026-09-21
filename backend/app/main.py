@@ -1,5 +1,7 @@
 import sys
 import os
+import subprocess
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from werkzeug.exceptions import HTTPException, BadRequest
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -23,6 +25,32 @@ load_dotenv()
 bp_list = [auth, user, admin]
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+def start_ssh_tunnel():
+    """Établit un tunnel SSH vers la VM via le proxy FRP du VPS si on est sur Render."""
+    private_key_path = "/tmp/id_ed25519"
+    ssh_key = os.getenv("SSH_PRIVATE_KEY")
+    if not ssh_key:
+        print("⚠️ SSH_PRIVATE_KEY non définie dans l'environnement.")
+        return
+    
+    with open(private_key_path, "w") as f:
+        f.write(ssh_key.replace("\\n", "\n"))
+    os.chmod(private_key_path, 0o600)
+    cmd = [
+        "ssh", "-o", "StrictHostKeyChecking=no",
+        "-i", private_key_path,
+        "-N", "-L", "2375:/var/run/docker.sock",
+        "ghtest@141.94.36.242", "-p", "22223"
+    ]
+    try:
+        subprocess.Popen(cmd)
+        print("🚀 Tunnel SSH vers la VM distant lancé avec succès.")
+    except Exception as e:
+        print(f"❌ Erreur lors du lancement du tunnel SSH : {e}")
+
+if os.getenv("RENDER"):
+    start_ssh_tunnel()
 
 def register_error_handlers(app):
     @app.errorhandler(Exception)
@@ -56,7 +84,7 @@ def create_app():
     app.config['SQLALCHEMY_ECHO'] = True
     app.config['SESSION_COOKIE_HTTPONLY'] = True
     app.config['SESSION_COOKIE_SECURE'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+    app.config['SESSION_COOKIE_SAMESITE']  = 'None'
     app.config['SMTP_SERVER'] = os.getenv('SMTP_SERVER')
     app.config['SMTP_USERNAME'] = os.getenv('SMTP_USERNAME')
     app.config['SMTP_PASSWORD'] = os.getenv('SMTP_PASSWORD')
@@ -88,14 +116,12 @@ def create_app():
             redis_client.setex(f"online_user:{user_id}", 300, "1")
     migrate = Migrate(app, db)
     return app
+
 app = create_app()
 
 @app.route('/')
 def home():
     return {"status": "Server is running", "project": "GuardiHack v1"}
 
-
-
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=9414)
-
