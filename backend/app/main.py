@@ -27,15 +27,18 @@ bp_list = [auth, user, admin]
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def start_ssh_tunnel():
-    """Établit un tunnel SSH vers la VM via le proxy FRP du VPS si on est sur Render."""
     private_key_path = "/tmp/id_ed25519"
     ssh_key = os.getenv("SSH_PRIVATE_KEY")
     if not ssh_key:
         print("⚠️ SSH_PRIVATE_KEY non définie dans l'environnement.")
         return
-    
+    cleaned_key = ssh_key.replace("\\n", "\n").replace("\r", "").strip()
+    if cleaned_key.startswith('"') and cleaned_key.endswith('"'):
+        cleaned_key = cleaned_key[1:-1]
+    if cleaned_key.startswith("'") and cleaned_key.endswith("'"):
+        cleaned_key = cleaned_key[1:-1]
     with open(private_key_path, "w") as f:
-        f.write(ssh_key.replace("\\n", "\n"))
+        f.write(cleaned_key + "\n")
     os.chmod(private_key_path, 0o600)
     cmd = [
         "ssh", "-o", "StrictHostKeyChecking=no",
@@ -45,7 +48,7 @@ def start_ssh_tunnel():
     ]
     try:
         subprocess.Popen(cmd)
-        print("🚀 Tunnel SSH vers la VM distant lancé avec succès.")
+        print("🚀 Commande de tunnel SSH lancée.")
     except Exception as e:
         print(f"❌ Erreur lors du lancement du tunnel SSH : {e}")
 
