@@ -16,7 +16,6 @@ services:
       - TZ=Europe/Paris
     volumes:
       - ./backend/app:/app
-      - ${USERPROFILE}/.ssh/id_ed25519:/root/.ssh/id_ed25519:ro
     working_dir: /app
     command: python main.py
     depends_on:
